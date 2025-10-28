@@ -3,12 +3,12 @@
  */
 import java.util.*;
 
-// 관찰자 인터페이스
+// 옵져버 인터페이스
 interface Observer {
     void update(String message);
 }
 
-// 관찰 대상 클래스
+// 옵져버 클래스
 class BicycleStatus {
     private List<Observer> observers = new ArrayList<>();
     private String bicycleId;

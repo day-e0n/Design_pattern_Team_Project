@@ -5,7 +5,7 @@ public class BeginnerBicycleSystem {
         System.out.println("==== 자전거 공유 시스템 ====\n");
         
         // 1. 전략 패턴 데모
-        System.out.println("1️전략 패턴 - 요금 계산");
+        System.out.println("전략 패턴 - 요금 계산");
         PricingContext pricing = new PricingContext(new RegularPricing());
         System.out.println("일반 요금 (30분): " + pricing.calculatePrice(30) + "원");
         
