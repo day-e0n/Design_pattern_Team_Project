@@ -1,5 +1,5 @@
 /**
- * 팩토리 메소드 패턴 - 자전거 생성 (간단 버전)
+ * 팩토리 메소드 패턴
  */
 class Bicycle {
     protected String id;

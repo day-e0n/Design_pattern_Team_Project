@@ -1,7 +1,4 @@
-/**
- * 초보자용 자전거 공유 시스템
- * 4가지 디자인 패턴 간단 데모
- */
+
 public class BeginnerBicycleSystem {
     
     public static void main(String[] args) {

@@ -1,5 +1,5 @@
 /**
- * 데코레이터 패턴 - 자전거에 기능 추가 (간단 버전)
+ * 데코레이터 패턴
  */
 
 // 기본 자전거
@@ -25,7 +25,7 @@ abstract class FeatureDecorator extends SimpleBicycle {
     }
 }
 
-// GPS 기능 추가
+// GPS 기능 추가 (가능한가..?)
 class GPSDecorator extends FeatureDecorator {
     public GPSDecorator(SimpleBicycle bicycle) {
         super(bicycle);
