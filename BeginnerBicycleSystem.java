@@ -5,10 +5,10 @@
 public class BeginnerBicycleSystem {
     
     public static void main(String[] args) {
-        System.out.println("==== 초보자용 자전거 공유 시스템 ====\n");
+        System.out.println("==== 자전거 공유 시스템 ====\n");
         
         // 1. 전략 패턴 데모
-        System.out.println("1️⃣ 전략 패턴 - 요금 계산");
+        System.out.println("1️전략 패턴 - 요금 계산");
         PricingContext pricing = new PricingContext(new RegularPricing());
         System.out.println("일반 요금 (30분): " + pricing.calculatePrice(30) + "원");
         
@@ -17,7 +17,7 @@ public class BeginnerBicycleSystem {
         System.out.println();
         
         // 2. 팩토리 패턴 데모
-        System.out.println("2️⃣ 팩토리 패턴 - 자전거 생성");
+        System.out.println("팩토리 패턴 - 자전거 생성");
         BicycleFactory regularFactory = new RegularBicycleFactory();
         BicycleFactory electricFactory = new ElectricBicycleFactory();
         
@@ -29,19 +29,16 @@ public class BeginnerBicycleSystem {
         System.out.println();
         
         // 3. 데코레이터 패턴 데모
-        System.out.println("3️⃣ 데코레이터 패턴 - 기능 추가");
+        System.out.println("데코레이터 패턴 - 기능 추가");
         SimpleBicycle basic = new SimpleBicycle("B001");
         System.out.println("기본: " + basic.getInfo());
-        
-        SimpleBicycle withGPS = new GPSDecorator(basic);
-        System.out.println("GPS 추가: " + withGPS.getInfo());
         
         SimpleBicycle withLock = new LockDecorator(withGPS);
         System.out.println("잠금 추가: " + withLock.getInfo());
         System.out.println();
         
         // 4. 옵저버 패턴 데모
-        System.out.println("4️⃣ 옵저버 패턴 - 상태 알림");
+        System.out.println("옵저버 패턴 - 상태 알림");
         BicycleStatus status = new BicycleStatus("B001");
         
         status.addObserver(new UserObserver("김철수"));
@@ -50,6 +47,6 @@ public class BeginnerBicycleSystem {
         status.rent();
         status.returnBike();
         
-        System.out.println("\n==== 데모 완료 ====");
+        System.out.println("\n==== 완료 ====");
     }
 }
