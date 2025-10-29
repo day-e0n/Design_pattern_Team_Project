@@ -1,0 +1,35 @@
+# Java 컴파일된 클래스 파일들 제외
+*.class
+
+# 패키지 파일들
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# 가상 머신 크래시 로그들
+hs_err_pid*
+replay_pid*
+
+# IDE 관련 파일들
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS 관련 파일들
+.DS_Store
+Thumbs.db
+
+# 로그 파일들
+*.log
+
+# 임시 파일들
+*.tmp
+*.bak
+*.swp
+*~
