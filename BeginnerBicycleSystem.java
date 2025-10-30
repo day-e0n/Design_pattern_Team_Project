@@ -30,8 +30,11 @@ public class BeginnerBicycleSystem {
         SimpleBicycle basic = new SimpleBicycle("B001");
         System.out.println("기본: " + basic.getInfo());
         
-        SimpleBicycle withLock = new LockDecorator(withGPS);
-        System.out.println("잠금 추가: " + withLock.getInfo());
+        SimpleBicycle withGPS = new GPSDecorator(basic);
+        System.out.println("GPS 추가: " + withGPS.getInfo());
+        
+        SimpleBicycle withGPSAndLock = new LockDecorator(withGPS);
+        System.out.println("잠금 추가: " + withGPSAndLock.getInfo());
         System.out.println();
         
         // 4. 옵저버 패턴 데모

@@ -14,6 +14,14 @@ class RegularPricing implements PricingStrategy {
     }
 }
 
+// 학생 요금 (20% 할인)
+class StudentPricing implements PricingStrategy {
+    public int calculatePrice(int minutes) {
+        int regularPrice = 1000 + minutes * 100;
+        return (int)(regularPrice * 0.5); // 50% 할인
+    }
+}
+
 // 전략 사용 클래스
 class PricingContext {
     private PricingStrategy strategy;
