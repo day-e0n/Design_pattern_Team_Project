@@ -44,19 +44,37 @@ public class BeginnerBicycleSystem {
         pricing.setStrategy(new StudentPricing());
         System.out.println("학생 요금 (60분): " + pricing.calculatePrice(60) + "원");
         System.out.println();
+
         
         // 3. 데코레이터 패턴 데모
         System.out.println("3. 데코레이터 패턴 - 기능 추가");
+        
         SimpleBicycle basic = new SimpleBicycle("DEMO001");
         System.out.println("기본: " + basic.getInfo());
-        
+
         SimpleBicycle withGPS = new GPSDecorator(basic);
         System.out.println("GPS 추가: " + withGPS.getInfo());
-        
-        SimpleBicycle withGPSAndLock = new LockDecorator(withGPS);
-        System.out.println("GPS + 잠금 추가: " + withGPSAndLock.getInfo());
+
+        SmartLockDecorator withGPSAndLock = new SmartLockDecorator(withGPS);
+        System.out.println("GPS + 스마트잠금 추가: " + withGPSAndLock.getInfo());
         System.out.println();
-        
+
+        // 스마트 잠금 사용 흐름
+        withGPSAndLock.unlock(); // 코드 필요 안내
+        String code = withGPSAndLock.getCurrentCodeForTest(); // 테스트 편의용
+        System.out.println("테스트용 현재 코드: " + code);
+
+        boolean ok = withGPSAndLock.unlockWithCode("0000");
+        System.out.println("해제 결과(오류 코드): " + ok);
+
+        ok = withGPSAndLock.unlockWithCode(code);
+        System.out.println("해제 결과(정상 코드): " + ok);
+
+        System.out.println("상태: " + withGPSAndLock.getInfo());
+        withGPSAndLock.lock(); // 재잠금 → 새 코드 생성
+        System.out.println("재잠금 후: " + withGPSAndLock.getInfo());
+
+
         // 4. 옵저버 패턴 데모
         System.out.println("4. 옵저버 패턴 - 상태 알림");
         BicycleStatus status = new BicycleStatus("DEMO001");
