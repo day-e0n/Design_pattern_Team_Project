@@ -9,11 +9,13 @@ class ConsoleInterface {
     private Scanner scanner;
     private BicycleManager bicycleManager;
     private PricingContext pricingContext;
+    private PricingStrategyFactory strategyFactory;
     
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
         this.bicycleManager = new BicycleManager();
-        this.pricingContext = new PricingContext(new RegularPricing());
+        this.pricingContext = new PricingContext(new RegularUserRegularBicycleStrategy());
+        this.strategyFactory = new PricingStrategyFactory();
     }
     
     public void start() {
@@ -237,20 +239,22 @@ class ConsoleInterface {
     private void calculateRentalFee() {
         System.out.println("요금제를 선택하세요:");
         System.out.println("1. 일반 요금");
-        System.out.println("2. 학생 요금 (50% 할인)"); // 임시로 학생 요금 추가, 다른 정액제로 확장할 예정
-        
-        int pricingChoice = getMenuChoice(1, 2);
-        if (pricingChoice == 1) {
-            pricingContext.setStrategy(new RegularPricing());
-        } else {
-            pricingContext.setStrategy(new StudentPricing());
-        }
-        
-        System.out.print("이용 시간(분)을 입력하세요: "); // 추후엔 이용시간이 자동으로 계산되도록 개선할 예정
+        System.out.println("2. 학생 요금 (20% 할인)"); // 임시로 학생 요금 추가, 다른 정액제로 확장할 예정
+        int userchoice = getMenuChoice(1, 2);
+        String userType = (userchoice == 2) ? "student" : "regular";
+        System.out.println("자전거 유형을 선택하세요:");
+        System.out.println("1. 일반 자전거");
+        System.out.println("2. 전기 자전거");
+        int bikechoice = getMenuChoice(1, 2);
+        String bicycleType = (bikechoice == 2) ? "전기자전거" : "일반자전거";
+        System.out.print("대여 시간을 분 단위로 입력하세요: ");
         int minutes = getIntInput();
+        PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
+        pricingContext.setStrategy(strategy);
+        int price = pricingContext.calculatePrice(minutes);
+        System.out.printf("총 대여 요금은 %d원입니다.\n", price);
         
-        int fee = pricingContext.calculatePrice(minutes);
-        System.out.printf("이용 요금: %d원 (%d분 이용)\n", fee, minutes);
+    
     }
     
     

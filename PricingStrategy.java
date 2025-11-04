@@ -7,21 +7,6 @@ interface PricingStrategy {
     int calculatePrice(int minutes);
 }
 
-// 일반 요금
-class RegularPricing implements PricingStrategy {
-    public int calculatePrice(int minutes) {
-        return 1000 + minutes * 100; // 기본 1000원 + 분당 100원
-    }
-}
-
-// 학생 요금 (20% 할인)
-class StudentPricing implements PricingStrategy {
-    public int calculatePrice(int minutes) {
-        int regularPrice = 1000 + minutes * 100;
-        return (int)(regularPrice * 0.5); // 50% 할인
-    }
-}
-
 // 전략 사용 클래스
 class PricingContext {
     private PricingStrategy strategy;
@@ -36,5 +21,39 @@ class PricingContext {
     
     public int calculatePrice(int minutes) {
         return strategy.calculatePrice(minutes);
+    }
+}
+
+// 구체적인 요금제 전략 클래스
+//1. 일반 사용자 + 일반 자전거
+class RegularUserRegularBicycleStrategy implements PricingStrategy {
+    @Override
+    public int calculatePrice(int minutes) {
+        return 1000 + minutes * 100; // 분당 100원
+    }
+}
+
+//2. 일반 사용자 + 전기 자전거
+class RegularUserElectricBicycleStrategy implements PricingStrategy {
+    @Override
+    public int calculatePrice(int minutes) {
+        return 1500 + minutes * 150; // 분당 150원
+    }
+}
+
+//3. 학생 사용자 + 일반 자전거
+class StudentUserRegularBicycleStrategy implements PricingStrategy {
+    @Override
+    public int calculatePrice(int minutes) {
+        int regularPrice = 1000 + minutes * 100;
+        return (int)(regularPrice * 0.8); // 20% 할인
+    }
+}
+//4. 학생 사용자 + 전기 자전거
+class StudentUserElectricBicycleStrategy implements PricingStrategy {
+    @Override
+    public int calculatePrice(int minutes) {
+        int regularPrice = 1500 + minutes * 150;
+        return (int)(regularPrice * 0.8); // 20% 할인
     }
 }
