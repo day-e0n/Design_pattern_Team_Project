@@ -84,7 +84,7 @@ public class BeginnerBicycleSystem {
 
         // 4. 옵저버 패턴 데모
         System.out.println("4. 옵저버 패턴 - 상태 알림");
-        BicycleStatus status = new BicycleStatus("DEMO001");
+        BicycleStatusNotifier status = new BicycleStatusNotifier("DEMO001");
         
         status.addObserver(new UserObserver("김철수"));
         status.addObserver(new AdminObserver());

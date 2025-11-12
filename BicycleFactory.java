@@ -37,7 +37,7 @@ class Bicycle {
         this.lastMaintenanceDate = this.registrationDate;
     }
     
-    // Getter 메소드들
+    // Getter 메소드들 (뺄지 말지 고민)
     public String getId() { return id; }
     public String getType() { return type; }
     public BicycleStatus getStatus() { return status; }

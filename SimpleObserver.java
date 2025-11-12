@@ -3,26 +3,26 @@
  */
 import java.util.*;
 
-// 옵져버 인터페이스
-interface Observer {
+// 간단한 옵저버 인터페이스 (Push 방식)
+interface SimpleObserver {
     void update(String message);
 }
 
-// 옵져버 클래스
-class BicycleStatus {
-    private List<Observer> observers = new ArrayList<>();
+// 자전거 상태 알림 클래스 (옵저버 패턴용)
+class BicycleStatusNotifier {
+    private List<SimpleObserver> observers = new ArrayList<>();
     private String bicycleId;
     
-    public BicycleStatus(String id) {
+    public BicycleStatusNotifier(String id) {
         this.bicycleId = id;
     }
     
-    public void addObserver(Observer observer) {
+    public void addObserver(SimpleObserver observer) {
         observers.add(observer);
     }
     
     public void notifyObservers(String message) {
-        for (Observer observer : observers) {
+        for (SimpleObserver observer : observers) {
             observer.update(message);
         }
     }
@@ -37,7 +37,7 @@ class BicycleStatus {
 }
 
 // 사용자 알림
-class UserObserver implements Observer {
+class UserObserver implements SimpleObserver {
     private String name;
     
     public UserObserver(String name) {
@@ -51,7 +51,7 @@ class UserObserver implements Observer {
 }
 
 // 관리자 알림
-class AdminObserver implements Observer {
+class AdminObserver implements SimpleObserver {
     @Override
     public void update(String message) {
         System.out.println("[관리자] " + message);
