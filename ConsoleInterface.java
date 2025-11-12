@@ -239,7 +239,7 @@ class ConsoleInterface {
     private void calculateRentalFee() {
         System.out.println("요금제를 선택하세요:");
         System.out.println("1. 일반 요금");
-        System.out.println("2. 학생 요금 (20% 할인)"); // 임시로 학생 요금 추가, 다른 정액제로 확장할 예정
+        System.out.println("2. 학생 요금 (20% 할인)");
         int userchoice = getMenuChoice(1, 2);
         String userType = (userchoice == 2) ? "student" : "regular";
         System.out.println("자전거 유형을 선택하세요:");

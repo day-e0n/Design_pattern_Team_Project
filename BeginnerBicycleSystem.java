@@ -38,11 +38,18 @@ public class BeginnerBicycleSystem {
         
         // 2. 전략 패턴 데모
         System.out.println("2. 전략 패턴 - 요금 계산");
-        PricingContext pricing = new PricingContext(new RegularPricing());
-        System.out.println("일반 요금 (60분): " + pricing.calculatePrice(60) + "원");
+        PricingContext pricing = new PricingContext(new RegularUserRegularBicycleStrategy());
+        System.out.println("일반 회원 일반 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
         
-        pricing.setStrategy(new StudentPricing());
-        System.out.println("학생 요금 (60분): " + pricing.calculatePrice(60) + "원");
+        pricing.setStrategy(new StudentUserRegularBicycleStrategy());
+        System.out.println("학생 일반 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
+        System.out.println();
+
+        pricing.setStrategy(new RegularUserElectricBicycleStrategy());
+        System.out.println("일반 회원 전기 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
+
+        pricing.setStrategy(new StudentUserElectricBicycleStrategy());
+        System.out.println("학생 전기 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
         System.out.println();
 
         
