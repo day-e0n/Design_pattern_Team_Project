@@ -147,10 +147,21 @@ class ConsoleInterface {
         System.out.print("자전거 유형을 선택하세요 (regular/electric): ");
         String type = scanner.nextLine().toLowerCase();
         
-        System.out.print("초기 위치를 입력하세요: ");
-        String location = scanner.nextLine();
+        LocationManager locationManager = LocationManager.getInstance();
         
-        bicycleManager.addBicycle(id, type, location);
+        System.out.println("\n초기 위치(스테이션)를 선택하세요:");
+        locationManager.showStationList();
+        System.out.print("번호를 입력하세요: ");
+        
+        int stationNum = getMenuChoice(1, 4);
+        String stationName = locationManager.getStationNameByNumber(stationNum);
+        
+        if (stationName == null) {
+            System.out.println("잘못된 스테이션 번호입니다.");
+            return;
+        }
+        
+        bicycleManager.addBicycle(id, type, stationName);
     }
     
     private void removeBicycle() {
@@ -190,10 +201,21 @@ class ConsoleInterface {
         System.out.print("위치를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
-        System.out.print("새로운 위치를 입력하세요: ");
-        String location = scanner.nextLine();
+        LocationManager locationManager = LocationManager.getInstance();
         
-        bicycleManager.changeBicycleLocation(id, location);
+        System.out.println("\n새로운 위치(스테이션)를 선택하세요:");
+        locationManager.showStationList();
+        System.out.print("번호를 입력하세요: ");
+        
+        int stationNum = getMenuChoice(1, 4);
+        String stationName = locationManager.getStationNameByNumber(stationNum);
+        
+        if (stationName == null) {
+            System.out.println("잘못된 스테이션 번호입니다.");
+            return;
+        }
+        
+        bicycleManager.changeBicycleLocation(id, stationName);
     }
     
     private void viewBicycleDetails() {
@@ -204,25 +226,56 @@ class ConsoleInterface {
     
     // 사용자 기능들
     private void viewAvailableBicycles() {
-        List<Bicycle> available = bicycleManager.getAvailableBicycles();
-        if (available.isEmpty()) {
-            System.out.println("현재 대여 가능한 자전거가 없습니다.");
-        } else {
-            System.out.println("\n==== 대여 가능한 자전거 ====");
-            for (Bicycle bicycle : available) {
-                System.out.println(bicycle);
-            }
-        }
-    }
-    
-    private void rentBicycle() {
-        viewAvailableBicycles();
-        if (bicycleManager.getAvailableBicycles().isEmpty()) {
+        LocationManager locationManager = LocationManager.getInstance();
+        
+        System.out.println("\n현재 위치를 선택하세요:");
+        locationManager.showStationList();
+        System.out.print("번호를 입력하세요: ");
+        
+        int stationNum = getMenuChoice(1, 4);
+        String stationName = locationManager.getStationNameByNumber(stationNum);
+        
+        if (stationName == null) {
+            System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
         
-        System.out.print("대여할 자전거 ID를 입력하세요: ");
+        locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
+    }
+    
+    private void rentBicycle() {
+        LocationManager locationManager = LocationManager.getInstance();
+        
+        System.out.println("\n현재 위치(자전거를 빌릴 스테이션)를 선택하세요:");
+        locationManager.showStationList();
+        System.out.print("번호를 입력하세요: ");
+        
+        int stationNum = getMenuChoice(1, 4);
+        String stationName = locationManager.getStationNameByNumber(stationNum);
+        
+        if (stationName == null) {
+            System.out.println("잘못된 스테이션 번호입니다.");
+            return;
+        }
+        
+        // 해당 스테이션의 대여 가능한 자전거 보기
+        locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
+        
+        List<String> bikesAtStation = locationManager.getBicyclesAtStation(stationName);
+        if (bikesAtStation.isEmpty()) {
+            System.out.println("이 스테이션에는 대여 가능한 자전거가 없습니다.");
+            return;
+        }
+        
+        System.out.print("\n대여할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
+        
+        // 해당 스테이션에 자전거가 있는지 확인
+        if (!bikesAtStation.contains(id)) {
+            System.out.println("이 스테이션에 해당 자전거가 없습니다.");
+            return;
+        }
+        
         bicycleManager.rentBicycle(id);
     }
     
@@ -230,10 +283,21 @@ class ConsoleInterface {
         System.out.print("반납할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
-        System.out.print("반납 위치를 입력하세요: ");
-        String location = scanner.nextLine();
+        LocationManager locationManager = LocationManager.getInstance();
         
-        bicycleManager.returnBicycle(id, location);
+        System.out.println("\n반납할 스테이션을 선택하세요:");
+        locationManager.showStationList();
+        System.out.print("번호를 입력하세요: ");
+        
+        int stationNum = getMenuChoice(1, 4);
+        String stationName = locationManager.getStationNameByNumber(stationNum);
+        
+        if (stationName == null) {
+            System.out.println("잘못된 스테이션 번호입니다.");
+            return;
+        }
+        
+        bicycleManager.returnBicycle(id, stationName);
     }
     
     private void calculateRentalFee() {

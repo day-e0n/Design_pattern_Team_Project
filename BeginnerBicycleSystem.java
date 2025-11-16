@@ -59,27 +59,27 @@ public class BeginnerBicycleSystem {
         SimpleBicycle basic = new SimpleBicycle("DEMO001");
         System.out.println("기본: " + basic.getInfo());
 
-        SimpleBicycle withGPS = new GPSDecorator(basic);
-        System.out.println("GPS 추가: " + withGPS.getInfo());
+        SimpleBicycle withTracking = new GPSDecorator(basic);
+        System.out.println("위치 추적 기능 추가: " + withTracking.getInfo());
 
-        SmartLockDecorator withGPSAndLock = new SmartLockDecorator(withGPS);
-        System.out.println("GPS + 스마트잠금 추가: " + withGPSAndLock.getInfo());
+        SmartLockDecorator withTrackingAndLock = new SmartLockDecorator(withTracking);
+        System.out.println("위치 추적 + 스마트잠금 추가: " + withTrackingAndLock.getInfo());
         System.out.println();
 
         // 스마트 잠금 사용 흐름
-        withGPSAndLock.unlock(); // 코드 필요 안내
-        String code = withGPSAndLock.getCurrentCodeForTest(); // 테스트 편의용
+        withTrackingAndLock.unlock(); // 코드 필요 안내
+        String code = withTrackingAndLock.getCurrentCodeForTest(); // 테스트 편의용
         System.out.println("테스트용 현재 코드: " + code);
 
-        boolean ok = withGPSAndLock.unlockWithCode("0000");
+        boolean ok = withTrackingAndLock.unlockWithCode("0000");
         System.out.println("해제 결과(오류 코드): " + ok);
 
-        ok = withGPSAndLock.unlockWithCode(code);
+        ok = withTrackingAndLock.unlockWithCode(code);
         System.out.println("해제 결과(정상 코드): " + ok);
 
-        System.out.println("상태: " + withGPSAndLock.getInfo());
-        withGPSAndLock.lock(); // 재잠금 → 새 코드 생성
-        System.out.println("재잠금 후: " + withGPSAndLock.getInfo());
+        System.out.println("상태: " + withTrackingAndLock.getInfo());
+        withTrackingAndLock.lock(); // 재잠금 → 새 코드 생성
+        System.out.println("재잠금 후: " + withTrackingAndLock.getInfo());
 
 
         // 4. 옵저버 패턴 데모
@@ -91,6 +91,29 @@ public class BeginnerBicycleSystem {
         
         status.rent();
         status.returnBike();
+        System.out.println();
+        
+        // 5. 위치 관리 시스템 데모 (싱글톤 + 옵저버)
+        System.out.println("5. 위치 관리 시스템 - 싱글톤 + 옵저버 패턴");
+        
+        // 싱글톤 인스턴스 가져오기
+        LocationManager locationManager = LocationManager.getInstance();
+        
+        // 옵저버 등록 (스테이션 통계만)
+        locationManager.addObserver(new StationStatisticsObserver());
+        
+        System.out.println();
+        
+        // 위치 이동 테스트
+        System.out.println("--- 자전거 위치 이동 테스트 ---");
+        locationManager.updateBicycleLocation("R001", "상현동");
+        System.out.println();
+        
+        locationManager.updateBicycleLocation("E001", "성복동");
+        System.out.println();
+        
+        // 스테이션 현황 확인
+        locationManager.showStationStatus();
         
         System.out.println("\n==== 데모 완료 ====");
     }

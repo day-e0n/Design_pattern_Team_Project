@@ -1,7 +1,7 @@
 import java.util.*;
 import java.time.LocalDate;
 
-/**
+/*
  * 자전거 관리 시스템
  * - 자전거 추가, 삭제, 조회, 수정 기능
  * - 상태 관리 (정상/고장/대여중/정비중)
@@ -10,11 +10,13 @@ class BicycleManager {
     private Map<String, Bicycle> bicycles;
     private BicycleFactory regularFactory;
     private BicycleFactory electricFactory;
+    private LocationManager locationManager;  // 위치 관리자 추가
     
     public BicycleManager() {
         this.bicycles = new HashMap<>();
         this.regularFactory = new RegularBicycleFactory();
         this.electricFactory = new ElectricBicycleFactory();
+        this.locationManager = LocationManager.getInstance();  // 싱글톤 인스턴스
         
         // 초기 데이터 추가
         addInitialBicycles();
@@ -47,6 +49,10 @@ class BicycleManager {
         
         bicycle.setLocation(location);
         bicycles.put(id, bicycle);
+        
+        // 위치 관리자에 등록
+        locationManager.registerBicycle(id, location);
+        
         System.out.println("자전거가 성공적으로 추가되었습니다: " + bicycle);
         return true;
     }
@@ -65,6 +71,10 @@ class BicycleManager {
         }
         
         bicycles.remove(id);
+        
+        // 위치 관리자에서도 제거
+        locationManager.removeBicycle(id);
+        
         System.out.println("자전거가 성공적으로 삭제되었습니다: " + id);
         return true;
     }
@@ -134,8 +144,10 @@ class BicycleManager {
         
         String oldLocation = bicycle.getLocation();
         bicycle.setLocation(newLocation);
-        System.out.printf("자전거 %s의 위치가 '%s'에서 '%s'로 변경되었습니다.\n", 
-                         id, oldLocation, newLocation);
+        
+        // 위치 관리자에 업데이트 (옵저버들에게 자동 알림)
+        locationManager.updateBicycleLocation(id, newLocation);
+        
         return true;
     }
     
@@ -196,7 +208,10 @@ class BicycleManager {
         
         bicycle.setStatus(BicycleStatus.AVAILABLE);
         bicycle.setLocation(returnLocation);
-        System.out.println("자전거 " + id + "가 " + returnLocation + "에 반납되었습니다.");
+        
+        // 위치 관리자에 업데이트 (옵저버들에게 자동 알림)
+        locationManager.updateBicycleLocation(id, returnLocation);
+        
         return true;
     }
     
