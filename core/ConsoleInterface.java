@@ -1,5 +1,9 @@
+package core;
+
 import java.util.Scanner;
 import java.util.List;
+import strategy.*;
+import observer.*;
 
 /**
  * 콘솔 기반 사용자 인터페이스

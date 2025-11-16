@@ -1,3 +1,7 @@
+package state;
+
+import core.Bicycle;
+
 /**
  * BikeState (자전거 상태) 인터페이스
  * 자전거의 상태에 따라 동작이 달라집니다.

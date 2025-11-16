@@ -1,3 +1,5 @@
+package strategy;
+
 /**
  * 전략 패턴
  */

@@ -3,7 +3,9 @@
  consoleInterface.java에서 직접 요금제를 선택하지않고 이 클래스를 통해서 요금제에 따른 계산을 할 수 있도록 했습니다.
  */
 
- public class PricingStrategyFactory {
+ package strategy;
+
+public class PricingStrategyFactory {
     /* 
     @param userType 사용자 유형 ("regular" 또는 "student")
     @param bicycleType 자전거 유형 ("regular" 또는 "electric")

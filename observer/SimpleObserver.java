@@ -1,3 +1,5 @@
+package observer;
+
 /**
  * 옵저버 패턴
  */

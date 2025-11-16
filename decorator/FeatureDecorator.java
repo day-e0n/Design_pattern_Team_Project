@@ -1,3 +1,5 @@
+package decorator;
+
 public abstract class FeatureDecorator extends SimpleBicycle {
     protected final SimpleBicycle bicycle;
 

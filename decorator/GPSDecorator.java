@@ -1,3 +1,5 @@
+package decorator;
+
 public class GPSDecorator extends FeatureDecorator {
     public GPSDecorator(SimpleBicycle bicycle) {
         super(bicycle);

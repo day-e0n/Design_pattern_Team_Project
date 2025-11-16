@@ -1,3 +1,8 @@
+package state;
+
+import core.Bicycle;
+import core.BicycleStatus;
+
 /**
  * 자전거 클래스 (State 패턴의 Context)
  * 현재 자신의 상태(State) 객체를 가집니다.

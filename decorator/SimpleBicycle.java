@@ -1,3 +1,5 @@
+package decorator;
+
 /**
  * 데코레이터 패턴
  */
