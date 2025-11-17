@@ -1,3 +1,5 @@
+package decorator;
+
 public class SmartLockDecorator extends FeatureDecorator {
     private boolean smartLockEnabled = true;
     private String unlockCode = generateUnlockCode();

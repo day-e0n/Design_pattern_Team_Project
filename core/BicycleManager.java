@@ -1,6 +1,7 @@
 package core;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.time.LocalDate;
 
 /*
@@ -8,17 +9,20 @@ import java.time.LocalDate;
  * - 자전거 추가, 삭제, 조회, 수정 기능
  * - 상태 관리 (정상/고장/대여중/정비중)
  */
+/* 대여 시간 측정 로직 추가 */
 class BicycleManager {
     private Map<String, Bicycle> bicycles;
     private BicycleFactory regularFactory;
     private BicycleFactory electricFactory;
     private LocationManager locationManager;  // 위치 관리자 추가
+    private Map<String, Long> rentalStartTimes; // 대여 시작 시간 기록용 Map 추가
     
     public BicycleManager() {
         this.bicycles = new HashMap<>();
         this.regularFactory = new RegularBicycleFactory();
         this.electricFactory = new ElectricBicycleFactory();
         this.locationManager = LocationManager.getInstance();  // 싱글톤 인스턴스
+        this.rentalStartTimes = new HashMap<>(); //  Map 초기화
         
         // 초기 데이터 추가
         addInitialBicycles();
@@ -176,7 +180,8 @@ class BicycleManager {
         return available;
     }
     
-    // 자전거 대여
+    
+   // ** 수정 ** 자전거 대여 + 자전거 대여 시 시간 기록 로직 추가
     public boolean rentBicycle(String id) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
@@ -191,22 +196,48 @@ class BicycleManager {
         }
         
         bicycle.setStatus(BicycleStatus.RENTED);
-        System.out.println("자전거 " + id + "가 대여되었습니다.");
+
+        // (추가) 대여 시작 시간 기록
+        rentalStartTimes.put(id, System.currentTimeMillis()); 
+        
+        System.out.println("자전거 " + id + "가 대여되었습니다. (대여 시간 기록됨)");
         return true;
+       
     }
     
-    // 자전거 반납
-    public boolean returnBicycle(String id, String returnLocation) {
+    // 자전거 반납 ** 수정 ** 대여 시간 계산 로직 추가
+    public int returnBicycle(String id, String returnLocation) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
             System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
-            return false;
+            return -1; // <-- (수정) 실패 시 -1 반환
         }
         
         if (bicycle.getStatus() != BicycleStatus.RENTED) {
             System.out.println("오류: 대여 중이 아닌 자전거입니다.");
-            return false;
+            return -1; // <-- (수정) 실패 시 -1 반환
         }
+
+        //(추가) 대여 시작 시간 조회
+        Long startTime = rentalStartTimes.get(id);
+        if (startTime == null) {
+            System.out.println("오류: 이 자전거의 대여 시작 기록을 찾을 수 없습니다.");
+            return -1; // <-- (수정) 실패 시 -1 반환
+        }
+        
+        //  이용 시간 계산
+        long durationMillis = System.currentTimeMillis() - startTime;
+        
+        // (수정) 테스트를 위해 '초'를 '분'처럼 취급합니다. (1초 -> 1분)
+        int durationMinutes = (int) TimeUnit.MILLISECONDS.toMinutes(durationMillis);
+        
+        
+        if (durationMinutes == 0) {
+            durationMinutes = 1; // 최소 1분(1초)
+        }
+
+        // (추가) 기록 삭제
+        rentalStartTimes.remove(id);
         
         bicycle.setStatus(BicycleStatus.AVAILABLE);
         bicycle.setLocation(returnLocation);
@@ -214,7 +245,11 @@ class BicycleManager {
         // 위치 관리자에 업데이트 (옵저버들에게 자동 알림)
         locationManager.updateBicycleLocation(id, returnLocation);
         
-        return true;
+        // ★★★ (수정) return true; -> println()을 먼저 실행
+        System.out.println("자전거 " + id + "가 " + returnLocation + "에 반납되었습니다.");
+
+        // 2. 이용 시간(분)을 '맨 마지막에' 반환합니다.
+        return durationMinutes; // <-- ★★★ (수정) boolean이 아닌 int 반환
     }
     
     // 통계 정보
