@@ -9,17 +9,19 @@ import observer.*;
  * 콘솔 기반 사용자 인터페이스
  * 관리자 모드와 사용자 모드를 제공
  */
-class ConsoleInterface {
+public class ConsoleInterface {
     private Scanner scanner;
     private BicycleManager bicycleManager;
     private PricingContext pricingContext;
     private PricingStrategyFactory strategyFactory;
+    private UserManager userManager;
     
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
         this.bicycleManager = new BicycleManager();
         this.pricingContext = new PricingContext(new RegularUserRegularBicycleStrategy());
         this.strategyFactory = new PricingStrategyFactory();
+        this.userManager = new UserManager();
     }
     
     public void start() {
@@ -111,19 +113,22 @@ class ConsoleInterface {
         
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 4);
+            int choice = getMenuChoice(0, 5);
             
             switch (choice) {
                 case 1:
-                    viewAvailableBicycles();
+                    registerUser();
                     break;
                 case 2:
-                    rentBicycle();
+                    viewAvailableBicycles();
                     break;
                 case 3:
-                    returnBicycle();
+                    rentBicycle();
                     break;
                 case 4:
+                    returnBicycle();
+                    break;
+                case 5:
                     calculateRentalFee();
                     break;
                 case 0:
@@ -135,10 +140,11 @@ class ConsoleInterface {
     
     private void showUserMenu() {
         System.out.println("\n==== 사용자 메뉴 ====");
-        System.out.println("1. 대여 가능한 자전거 보기");
-        System.out.println("2. 자전거 대여");
-        System.out.println("3. 자전거 반납");
-        System.out.println("4. 요금 계산");
+        System.out.println("1. 회원가입");
+        System.out.println("2. 대여 가능한 자전거 보기");
+        System.out.println("3. 자전거 대여");
+        System.out.println("4. 자전거 반납");
+        System.out.println("5. 요금 계산");
         System.out.println("0. 메인 메뉴로");
         System.out.print("선택하세요: ");
     }
@@ -229,6 +235,32 @@ class ConsoleInterface {
     }
     
     // 사용자 기능들
+    private void registerUser() {
+    System.out.println("\n==== 회원가입 ====");
+    
+    System.out.print("사용자 ID를 입력하세요: ");
+    String userId = scanner.nextLine().trim();
+
+    System.out.print("비밀번호를 입력하세요: ");
+    String password = scanner.nextLine();
+    String passwordHash = PasswordUtil.hashPassword(password);  // 해시 처리
+
+    System.out.print("이름을 입력하세요: ");
+    String name = scanner.nextLine().trim();
+
+    System.out.print("전화번호를 입력하세요 (예: 010-1234-5678): ");
+    String phoneNumber = scanner.nextLine().trim();
+
+    System.out.print("거주 지역(위치)을 입력하세요: ");
+    String location = scanner.nextLine().trim();
+
+    User user = new User(userId, passwordHash, name, phoneNumber, location);
+    userManager.saveUser(user);
+
+    System.out.println("사용자 정보 입력이 완료되었습니다.");
+    }
+
+
     private void viewAvailableBicycles() {
         LocationManager locationManager = LocationManager.getInstance();
         
