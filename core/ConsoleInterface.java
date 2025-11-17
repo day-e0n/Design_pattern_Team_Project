@@ -111,7 +111,7 @@ class ConsoleInterface {
         
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 4);
+            int choice = getMenuChoice(0, 3);
             
             switch (choice) {
                 case 1:
@@ -137,8 +137,8 @@ class ConsoleInterface {
         System.out.println("\n==== 사용자 메뉴 ====");
         System.out.println("1. 대여 가능한 자전거 보기");
         System.out.println("2. 자전거 대여");
-        System.out.println("3. 자전거 반납");
-        System.out.println("4. 요금 계산");
+        System.out.println("3. 자전거 반납 및 요금 계산");
+       // System.out.println("4. 요금 계산"); // 요금 계산 기능과 반납 통합
         System.out.println("0. 메인 메뉴로");
         System.out.print("선택하세요: ");
     }
@@ -283,7 +283,7 @@ class ConsoleInterface {
         bicycleManager.rentBicycle(id);
     }
     
-    private void returnBicycle() {
+   private void returnBicycle() {
         System.out.print("반납할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
@@ -300,29 +300,56 @@ class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
+
         
-        bicycleManager.returnBicycle(id, stationName);
-    }
-    
-    private void calculateRentalFee() {
-        System.out.println("요금제를 선택하세요:");
-        System.out.println("1. 일반 요금");
-        System.out.println("2. 학생 요금 (20% 할인)");
-        int userchoice = getMenuChoice(1, 2);
-        String userType = (userchoice == 2) ? "student" : "regular";
-        System.out.println("자전거 유형을 선택하세요:");
-        System.out.println("1. 일반 자전거");
-        System.out.println("2. 전기 자전거");
-        int bikechoice = getMenuChoice(1, 2);
-        String bicycleType = (bikechoice == 2) ? "전기자전거" : "일반자전거";
-        System.out.print("대여 시간을 분 단위로 입력하세요: ");
-        int minutes = getIntInput();
-        PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
-        pricingContext.setStrategy(strategy);
-        int price = pricingContext.calculatePrice(minutes);
-        System.out.printf("총 대여 요금은 %d원입니다.\n", price);
+        Bicycle bicycle = bicycleManager.getBicycle(id);
+        if (bicycle == null) {
+            System.out.println("오류: 자전거를 찾을 수 없습니다.");
+            return;
+        }
         
-    
+        String bicycleType = bicycle.getType();
+
+        
+        int minutes = bicycleManager.returnBicycle(id, stationName);
+        
+        // 반납이 성공적으로 이뤄졌을 때만 (minutes >= 0) 요금 계산을 진행
+        if (minutes >= 0) {
+            
+            System.out.println("\n--- 반납 완료! (" + minutes + "초 이용) ---");
+            System.out.println("--- 요금 계산을 시작합니다. (테스트: 1초 = 1분) ---");
+        
+            // (임시) 사용자 정보 입력 (회의록 4.A - 유저 클래스 구현 전)
+            System.out.println("요금 계산을 위해 사용자 유형을 선택하세요:");
+            System.out.println("1. 일반 (general)");
+            System.out.println("2. 학생 (student)");
+            int userChoice = getMenuChoice(1, 2);
+            String userType = (userChoice == 1) ? "general" : "student";
+            
+            // 팩토리를 통해 전략 선택
+            PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
+            
+            // Context를 통해 요금 계산 실행
+            pricingContext.setStrategy(strategy);
+            int fee = pricingContext.calculatePrice(minutes);
+            
+            System.out.println("---------------------------------");
+            System.out.println("        최종 결제 요금");
+            System.out.println("---------------------------------");
+            System.out.println("사용자 유형: " + userType);
+            System.out.println("자전거 종류: " + bicycleType);
+            System.out.println("이용 시간: " + minutes + "분 (테스트: " + minutes + "초)");
+            
+            //PricingStrategy.java에 추가된 getStrategyName() 사용
+            System.out.println("적용 요금제: " + pricingContext.getStrategyName());
+            
+            System.out.println("최종 요금: " + fee + "원");
+            System.out.println("---------------------------------");
+
+            
+            // (여기에 잔액 관리 기능도 넣으면 될 것 같아요.)
+          
+        }
     }
     
     
