@@ -1,12 +1,9 @@
 package strategy;
 
-/**
- * 복잡한 수리 시간 계산 전략 (Strategy 구현체)
- * (3) 신고 사유에 따라 기본 시간 + 확률적 지연/조기 완료
- */
 import java.util.Random;
+import observer.BreakdownReason;
 
-class RepairStrategy implements RepairTimeStrategy {
+class RepairStrategy implements RepairStrategyInterface {
     private final Random random = new Random();
 
     @Override
