@@ -15,6 +15,7 @@ public class ConsoleInterface {
     private PricingContext pricingContext;
     private PricingStrategyFactory strategyFactory;
     private UserManager userManager;
+    private User currentUser; // 현재 로그인한 사용자
     
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
@@ -112,24 +113,57 @@ public class ConsoleInterface {
     private void userMode() {
         System.out.println("\n 사용자 모드에 들어갑니다.");
         
+        // 로그인 확인
+        if (currentUser == null) {
+            System.out.println("\n사용자 모드를 사용하려면 로그인이 필요합니다.");
+            System.out.println("1. 로그인");
+            System.out.println("2. 회원가입");
+            System.out.println("0. 메인 메뉴로");
+            System.out.print("선택하세요: ");
+            
+            int choice = getMenuChoice(0, 2);
+            
+            if (choice == 1) {
+                loginUser();
+                if (currentUser == null) {
+                    return; // 로그인 실패 시 메인 메뉴로
+                }
+            } else if (choice == 2) {
+                registerUser();
+                System.out.println("회원가입 후 로그인해주세요.");
+                loginUser();
+                if (currentUser == null) {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+        
+        System.out.println("\n환영합니다, " + currentUser.getName() + "님!");
+        System.out.println("회원 유형: " + (currentUser.getUserType().equals("student") ? "학생" : "일반"));
+        
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 4);
+            int choice = getMenuChoice(0, 5);
             
             switch (choice) {
                 case 1:
-                    registerUser();
-                    break;
-                case 2:
                     viewAvailableBicycles();
                     break;
-                case 3:
+                case 2:
                     rentBicycle();
                     break;
-                case 4:
+                case 3:
                     returnBicycle();
                     break;
-                
+                case 4:
+                    calculatePrice();
+                    break;
+                case 5:
+                    currentUser = null; // 로그아웃
+                    System.out.println("로그아웃되었습니다.");
+                    return;
                 case 0:
                     System.out.println("사용자 모드를 종료합니다.");
                     return;
@@ -143,6 +177,7 @@ public class ConsoleInterface {
         System.out.println("2. 자전거 대여");
         System.out.println("3. 자전거 반납");
         System.out.println("4. 요금 계산");
+        System.out.println("5. 로그아웃");
         System.out.println("0. 메인 메뉴로");
         System.out.print("선택하세요: ");
     }
@@ -233,29 +268,56 @@ public class ConsoleInterface {
     }
     
     // 사용자 기능들
-    private void registerUser() {
-    System.out.println("\n==== 회원가입 ====");
+    private void loginUser() {
+        System.out.println("\n==== 로그인 ====");
+        
+        System.out.print("사용자 ID: ");
+        String userId = scanner.nextLine().trim();
+        
+        System.out.print("비밀번호: ");
+        String password = scanner.nextLine();
+        
+        currentUser = userManager.login(userId, password);
+        
+        if (currentUser != null) {
+            System.out.println("로그인 성공! 환영합니다, " + currentUser.getName() + "님!");
+            
+            // 사용자 유형에 따라 요금 전략 설정
+            String bicycleType = "일반자전거"; // 기본값
+            pricingContext.setStrategy(strategyFactory.getStrategy(currentUser.getUserType(), bicycleType));
+        } else {
+            System.out.println("로그인 실패!");
+        }
+    }
     
-    System.out.print("사용자 ID를 입력하세요: ");
-    String userId = scanner.nextLine().trim();
+    private void registerUser() {
+        System.out.println("\n==== 회원가입 ====");
+        
+        System.out.print("사용자 ID를 입력하세요: ");
+        String userId = scanner.nextLine().trim();
+        
+        // ID 중복 확인
+        if (userManager.isUserIdExists(userId)) {
+            System.out.println("이미 존재하는 ID입니다. 다른 ID를 사용해주세요.");
+            return;
+        }
 
-    System.out.print("비밀번호를 입력하세요: ");
-    String password = scanner.nextLine();
-    String passwordHash = PasswordUtil.hashPassword(password);  // 해시 처리
+        System.out.print("비밀번호를 입력하세요: ");
+        String password = scanner.nextLine();
+        String passwordHash = PasswordUtil.hashPassword(password);  // 해시 처리
 
-    System.out.print("이름을 입력하세요: ");
-    String name = scanner.nextLine().trim();
+        System.out.print("이름을 입력하세요: ");
+        String name = scanner.nextLine().trim();
+        
+        System.out.print("회원 유형을 선택하세요 (1: 일반, 2: 학생): ");
+        int userTypeChoice = getMenuChoice(1, 2);
+        String userType = (userTypeChoice == 2) ? "student" : "regular";
 
-    System.out.print("전화번호를 입력하세요 (예: 010-1234-5678): ");
-    String phoneNumber = scanner.nextLine().trim();
+        User user = new User(userId, passwordHash, name, "", "", userType);
+        userManager.saveUser(user);
 
-    System.out.print("거주 지역(위치)을 입력하세요: ");
-    String location = scanner.nextLine().trim();
-
-    User user = new User(userId, passwordHash, name, phoneNumber, location);
-    userManager.saveUser(user);
-
-    System.out.println("사용자 정보 입력이 완료되었습니다.");
+        System.out.println("회원가입이 완료되었습니다!");
+        System.out.println("회원 유형: " + (userType.equals("student") ? "학생" : "일반"));
     }
 
 
@@ -349,12 +411,8 @@ public class ConsoleInterface {
             System.out.println("\n--- 반납 완료! (" + minutes + "초 이용) ---");
             System.out.println("--- 요금 계산을 시작합니다. (테스트: 1초 = 1분) ---");
         
-            // (임시) 사용자 정보 입력 (회의록 4.A - 유저 클래스 구현 전)
-            System.out.println("요금 계산을 위해 사용자 유형을 선택하세요:");
-            System.out.println("1. 일반 (general)");
-            System.out.println("2. 학생 (student)");
-            int userChoice = getMenuChoice(1, 2);
-            String userType = (userChoice == 1) ? "general" : "student";
+            // 로그인한 사용자 정보 사용
+            String userType = currentUser.getUserType();
             
             // 팩토리를 통해 전략 선택
             PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
@@ -366,7 +424,8 @@ public class ConsoleInterface {
             System.out.println("---------------------------------");
             System.out.println("        최종 결제 요금");
             System.out.println("---------------------------------");
-            System.out.println("사용자 유형: " + userType);
+            System.out.println("사용자: " + currentUser.getName() + " (" + currentUser.getUserId() + ")");
+            System.out.println("사용자 유형: " + (userType.equals("student") ? "학생" : "일반"));
             System.out.println("자전거 종류: " + bicycleType);
             System.out.println("이용 시간: " + minutes + "분 (테스트: " + minutes + "초)");
             
@@ -380,6 +439,39 @@ public class ConsoleInterface {
             // (여기에 잔액 관리 기능도 넣으면 될 것 같아요.)
           
         }
+    }
+    
+    private void calculatePrice() {
+        System.out.println("\n==== 요금 계산기 ====");
+        System.out.println("자전거 유형을 선택하세요:");
+        System.out.println("1. 일반자전거");
+        System.out.println("2. 전기자전거");
+        
+        int bikeChoice = getMenuChoice(1, 2);
+        String bicycleType = (bikeChoice == 1) ? "일반자전거" : "전기자전거";
+        
+        System.out.print("이용 시간(분)을 입력하세요: ");
+        int minutes = getIntInput();
+        
+        // 로그인한 사용자 정보 사용
+        String userType = currentUser.getUserType();
+        
+        // 팩토리를 통해 전략 선택
+        PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
+        pricingContext.setStrategy(strategy);
+        
+        int fee = pricingContext.calculatePrice(minutes);
+        
+        System.out.println("\n---------------------------------");
+        System.out.println("        요금 계산 결과");
+        System.out.println("---------------------------------");
+        System.out.println("사용자: " + currentUser.getName());
+        System.out.println("회원 유형: " + (userType.equals("student") ? "학생" : "일반"));
+        System.out.println("자전거 종류: " + bicycleType);
+        System.out.println("이용 시간: " + minutes + "분");
+        System.out.println("적용 요금제: " + pricingContext.getStrategyName());
+        System.out.println("예상 요금: " + fee + "원");
+        System.out.println("---------------------------------");
     }
     
     

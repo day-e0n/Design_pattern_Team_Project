@@ -33,3 +33,6 @@ Thumbs.db
 *.bak
 *.swp
 *~
+
+# DB로 쓰이는 csv
+# *.csv

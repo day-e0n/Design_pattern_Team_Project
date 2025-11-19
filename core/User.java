@@ -11,13 +11,19 @@ public class User {
     private String name;
     private String phoneNumber;
     private String location;
+    private String userType; // "regular" 또는 "student"
 
     public User(String userId, String passwordHash, String name, String phoneNumber, String location) {
+        this(userId, passwordHash, name, phoneNumber, location, "regular");
+    }
+
+    public User(String userId, String passwordHash, String name, String phoneNumber, String location, String userType) {
         this.userId = userId;
         this.passwordHash = passwordHash;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.location = location;
+        this.userType = userType;
     }
 
     public String getUserId() {
@@ -40,6 +46,14 @@ public class User {
         return location;
     }
 
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
     // CSV 한 줄로 변환
     public String toCsvRow() {
         // 간단히 쉼표 기준으로만 나눌 거라, 쉼표는 제거해 둔다.
@@ -53,7 +67,8 @@ public class User {
                 passwordHash,
                 safeName,
                 safePhoneNumber,
-                safeLocation
+                safeLocation,
+                userType
         );
     }
 }
