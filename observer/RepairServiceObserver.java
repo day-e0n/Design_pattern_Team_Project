@@ -1,7 +1,6 @@
 package observer;
 
 import state.BikeState;
-import observer.BreakdownReason;
 import strategy.RepairStrategyInterface;
 
 import java.util.Map;
