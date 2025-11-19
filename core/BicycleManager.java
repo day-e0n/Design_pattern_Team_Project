@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  * - 상태 관리 (정상/고장/대여중/정비중)
  */
 /* 대여 시간 측정 로직 추가 */
-class BicycleManager {
+public class BicycleManager {
     private Map<String, Bicycle> bicycles;
     private BicycleFactory regularFactory;
     private BicycleFactory electricFactory;

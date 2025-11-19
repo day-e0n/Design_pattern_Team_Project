@@ -3,7 +3,7 @@ package strategy;
 import java.util.Random;
 import observer.BreakdownReason;
 
-class RepairStrategy implements RepairStrategyInterface {
+public class RepairStrategy implements RepairStrategyInterface {
     private final Random random = new Random();
 
     @Override
