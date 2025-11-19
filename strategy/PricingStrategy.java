@@ -5,31 +5,10 @@ package strategy;
  */
 
 // 전략 인터페이스
-interface PricingStrategy {
+public interface PricingStrategy {
     int calculatePrice(int minutes);
     String getStrategyName(); /*11월 16일 추가사항: 각 요금제의 이름도 같이 출력하로독 변경 */
 }
-
-// 전략 사용 클래스
-class PricingContext {
-    private PricingStrategy strategy;
-    
-    public PricingContext(PricingStrategy strategy) {
-        this.strategy = strategy;
-    }
-    
-    public void setStrategy(PricingStrategy strategy) {
-        this.strategy = strategy;
-    }
-    
-    public int calculatePrice(int minutes) {
-        return strategy.calculatePrice(minutes);
-    }
-    public String getStrategyName() {
-        return strategy.getStrategyName();
-    }
-}
-
 
 // 구체적인 요금제 전략 클래스
 //1. 일반 사용자 + 일반 자전거

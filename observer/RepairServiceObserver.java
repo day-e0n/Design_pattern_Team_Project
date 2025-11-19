@@ -1,7 +1,7 @@
 package observer;
 
 import state.BikeState;
-import strategy.BreakdownReason;
+import observer.BreakdownReason;
 import strategy.RepairStrategyInterface;
 
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * 2. 수리 서비스 Observer
  * (고장 신고) -> (3) N초(분) 후 수리 시작 -> (3) 전략 패턴으로 수리 시간 계산 -> 수리 완료 Subject 실행
  */
-public class RepairServiceObserver implements Observer {
+public class RepairServiceObserver implements ObserverInterface {
     private final Map<String, BikeState> bikeDatabase;
     private final ScheduledExecutorService scheduler;
     private final RepairStrategyInterface repairStrategy;

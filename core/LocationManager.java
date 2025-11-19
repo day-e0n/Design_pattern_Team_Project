@@ -7,7 +7,7 @@ import java.util.*;
  * - 자전거-스테이션 매핑 관리
  * - 위치 변경 시 자동 알림
  */
-class LocationManager {
+public class LocationManager {
     // 싱글톤 인스턴스
     private static LocationManager instance;
     

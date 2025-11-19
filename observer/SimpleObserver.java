@@ -6,7 +6,7 @@ package observer;
 import java.util.*;
 
 // 간단한 옵저버 인터페이스 (Push 방식)
-interface SimpleObserver {
+public interface SimpleObserver {
     void update(String message);
 }
 

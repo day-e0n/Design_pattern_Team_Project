@@ -19,8 +19,9 @@ public class ConsoleInterface {
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
         this.bicycleManager = new BicycleManager();
-        this.pricingContext = new PricingContext(new RegularUserRegularBicycleStrategy());
         this.strategyFactory = new PricingStrategyFactory();
+        // Factory를 통해 기본 전략 생성
+        this.pricingContext = new PricingContext(strategyFactory.getStrategy("regular", "일반자전거"));
         this.userManager = new UserManager();
     }
     

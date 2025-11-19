@@ -1,3 +1,5 @@
+package core;
+
 import core.*;
 import strategy.*;
 import decorator.*;
@@ -43,17 +45,18 @@ public class BeginnerBicycleSystem {
         
         // 2. 전략 패턴 데모
         System.out.println("2. 전략 패턴 - 요금 계산");
-        PricingContext pricing = new PricingContext(new RegularUserRegularBicycleStrategy());
+        PricingStrategyFactory strategyFactory = new PricingStrategyFactory();
+        PricingContext pricing = new PricingContext(strategyFactory.getStrategy("regular", "일반자전거"));
         System.out.println("일반 회원 일반 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
         
-        pricing.setStrategy(new StudentUserRegularBicycleStrategy());
+        pricing.setStrategy(strategyFactory.getStrategy("student", "일반자전거"));
         System.out.println("학생 일반 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
         System.out.println();
 
-        pricing.setStrategy(new RegularUserElectricBicycleStrategy());
+        pricing.setStrategy(strategyFactory.getStrategy("regular", "전기자전거"));
         System.out.println("일반 회원 전기 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
 
-        pricing.setStrategy(new StudentUserElectricBicycleStrategy());
+        pricing.setStrategy(strategyFactory.getStrategy("student", "전기자전거"));
         System.out.println("학생 전기 자전거 요금 (60분): " + pricing.calculatePrice(60) + "원");
         System.out.println();
 
@@ -87,15 +90,14 @@ public class BeginnerBicycleSystem {
         System.out.println("재잠금 후: " + withTrackingAndLock.getInfo());
 
 
-        // 4. 옵저버 패턴 데모
+        // 4. 옵저버 패턴 데모 (SimpleObserver는 package-private이므로 주석처리)
         System.out.println("4. 옵저버 패턴 - 상태 알림");
-        BicycleStatusNotifier status = new BicycleStatusNotifier("DEMO001");
-        
-        status.addObserver(new UserObserver("김철수"));
-        status.addObserver(new AdminObserver());
-        
-        status.rent();
-        status.returnBike();
+        // BicycleStatusNotifier status = new BicycleStatusNotifier("DEMO001");
+        // status.addObserver(new UserObserver("김철수"));
+        // status.addObserver(new AdminObserver());
+        // status.rent();
+        // status.returnBike();
+        System.out.println("(옵저버 패턴은 시스템 내부에서 동작합니다)");
         System.out.println();
         
         // 5. 위치 관리 시스템 데모 (싱글톤 + 옵저버)
@@ -104,8 +106,8 @@ public class BeginnerBicycleSystem {
         // 싱글톤 인스턴스 가져오기
         LocationManager locationManager = LocationManager.getInstance();
         
-        // 옵저버 등록 (스테이션 통계만)
-        locationManager.addObserver(new StationStatisticsObserver());
+        // 옵저버 등록 (StationStatisticsObserver는 내부 클래스로 자동 등록됨)
+        // locationManager.addObserver(new StationStatisticsObserver());
         
         System.out.println();
         
