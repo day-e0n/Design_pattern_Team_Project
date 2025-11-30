@@ -8,7 +8,7 @@ public enum BreakdownReason {
     FLAT_TIRE(5),     // 펑크 (기본 5초)
     BROKEN_CHAIN(8),  // 체인 고장 (기본 8초)
     BRAKE_ISSUE(6),   // 브레이크 문제 (기본 6초)
-    BATTERY(5),       // 배터리 문제 (전기자전거 한정, 기본 5초)
+    BATTERY(10),       // 배터리 문제 (전기자전거 한정, 10초)
     OTHER(4);         // 기타 (기본 4초)
 
     private final int baseTime; // 기본 수리 시간 (초)

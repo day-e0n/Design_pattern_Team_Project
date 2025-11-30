@@ -1,22 +1,31 @@
 package state;
 
+import core.BicycleStatus;
+import java.util.List;
 import observer.BreakdownReason;
 
 // 사용 가능 상태
-class AvailableState implements BikeStateInterface {
+public class AvailableState implements BikeStateInterface {
     @Override
-    public void reportBroken(BikeState bike, BreakdownReason reason) {
+    public void reportBroken(BikeState bike, List<BreakdownReason> reasons) {
         System.out.println(">> [State Change] " + bike.getBikeId() + " : '사용 가능' -> '고장'");
         bike.setState(new BrokenState());
     }
 
-    // 사용 가능한 자전거는 수리/수리완료/스테이션이동 불가
     @Override
-    public void startRepair(BikeState bike) { /* Do nothing */ }
+    public boolean canRent() { return true; }
     @Override
-    public void completeRepair(BikeState bike) { /* Do nothing */ }
+    public boolean canDelete() { return true; }
     @Override
-    public void moveToStation(BikeState bike) { /* Do nothing */ }
+    public boolean canMove() { return true; }
+    @Override
+    public boolean canReport() { return true; }
+
     @Override
     public String getStatus() { return "사용 가능"; }
+
+    @Override
+    public BicycleStatus getBicycleStatus() {
+        return BicycleStatus.AVAILABLE;
+    }
 }

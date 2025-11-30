@@ -1,47 +1,38 @@
 package state;
 
+import core.BicycleStatus;
+import java.util.List;
 import observer.BreakdownReason;
 
-/**
- * 자전거 클래스 (State 패턴의 Context)
- * 현재 자신의 상태(State) 객체를 가집니다.
- */
 public class BikeState {
     private final String bikeId;
-    private BikeStateInterface state; // 현재 상태
+    private BikeStateInterface state;
 
     public BikeState(String bikeId) {
         this.bikeId = bikeId;
-        this.state = new AvailableState(); // 초기 상태는 '사용 가능'
+        this.state = new AvailableState(); 
     }
 
-    // 상태 변경은 Bike 객체 자신만이 할 수 있도록 package-private 설정
-    void setState(BikeStateInterface state) {
+    public void setState(BikeStateInterface state) {
         this.state = state;
     }
 
-    // 모든 행동을 현재 상태 객체에 위임
-    public void reportBroken(BreakdownReason reason) {
-        state.reportBroken(this, reason);
+    public void reportBroken(List<BreakdownReason> reasons) {
+        state.reportBroken(this, reasons);
     }
 
-    public void startRepair() {
-        state.startRepair(this);
-    }
-
-    public void completeRepair() {
-        state.completeRepair(this);
-    }
-
-    public void moveToStation() {
-        state.moveToStation(this);
-    }
-
-    public String getBikeId() {
-        return bikeId;
-    }
+    public boolean canRent() { return state.canRent(); }
+    public boolean canDelete() { return state.canDelete(); }
+    public boolean canMove() { return state.canMove(); }
+    public boolean canReport() { return state.canReport(); }
 
     public String getStatus() {
         return state.getStatus();
     }
+    
+    public BicycleStatus getBicycleStatus() {
+        return state.getBicycleStatus();
+    }
+    
+    public String getBikeId() { return bikeId; }
 }

@@ -1,9 +1,12 @@
 package core;
 
-import java.util.Scanner;
+import java.util.ArrayList;
 import java.util.List;
-import strategy.*;
+import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import observer.*;
+import strategy.*;
 
 /**
  * 콘솔 기반 사용자 인터페이스
@@ -16,6 +19,10 @@ public class ConsoleInterface {
     private PricingStrategyFactory strategyFactory;
     private UserManager userManager;
     private User currentUser; // 현재 로그인한 사용자
+
+    public static boolean isAdminMode = false; 
+    private ScheduledExecutorService scheduler;
+    private RepairServiceObserver repairObserver;
     
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
@@ -24,6 +31,8 @@ public class ConsoleInterface {
         // Factory를 통해 기본 전략 생성
         this.pricingContext = new PricingContext(strategyFactory.getStrategy("regular", "일반자전거"));
         this.userManager = new UserManager();
+        this.scheduler = Executors.newScheduledThreadPool(4);
+        this.repairObserver = new RepairServiceObserver(bicycleManager, scheduler, new RepairStrategy());
     }
     
     public void start() {
@@ -32,6 +41,7 @@ public class ConsoleInterface {
         System.out.println("=======================================");
         
         while (true) {
+            isAdminMode = false;
             showMainMenu();
             int choice = getMenuChoice(0, 2);
             
@@ -44,6 +54,7 @@ public class ConsoleInterface {
                     break;
                 case 0:
                     System.out.println("시스템을 종료합니다. 안녕히 가세요!");
+                    scheduler.shutdownNow();
                     return;
             }
         }
@@ -58,6 +69,7 @@ public class ConsoleInterface {
     }
     
     private void adminMode() {
+        isAdminMode = true;
         System.out.println("\n 관리자 모드에 들어갑니다.");
         
         while (true) {
@@ -78,7 +90,7 @@ public class ConsoleInterface {
                     viewBicyclesByStatus();
                     break;
                 case 5:
-                    changeBicycleStatus();
+                    reportBrokenBicycle();
                     break;
                 case 6:
                     changeBicycleLocation();
@@ -91,6 +103,7 @@ public class ConsoleInterface {
                     break;
                 case 0:
                     System.out.println("관리자 모드를 종료합니다.");
+                    isAdminMode = false;
                     return;
             }
         }
@@ -102,7 +115,7 @@ public class ConsoleInterface {
         System.out.println("2. 자전거 삭제");
         System.out.println("3. 전체 자전거 목록");
         System.out.println("4. 상태별 자전거 조회");
-        System.out.println("5. 자전거 상태 변경");
+        System.out.println("5. 자전거 고장 신고");
         System.out.println("6. 자전거 위치 변경");
         System.out.println("7. 자전거 상세 정보");
         System.out.println("8. 통계 보기");
@@ -216,14 +229,65 @@ public class ConsoleInterface {
     private void removeBicycle() {
         System.out.print("삭제할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
+
+        Bicycle bike = bicycleManager.getBicycle(id);
+        // 삭제 가능한 상태인지 조회
+        if (bike != null) {
+            if (!bike.getBikeState().canDelete()) return;
+        }
+
         bicycleManager.removeBicycle(id);
+    }
+
+    private void reportBrokenBicycle() {
+        System.out.print("신고할 자전거 ID를 입력하세요: ");
+        String id = scanner.nextLine();
+        Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike == null) {
+            System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
+            return;
+        }
+        // 신고 가능한 상태인지 조회 
+        if (!bike.getBikeState().canReport()) return;
+        
+        List<BreakdownReason> reasons = new ArrayList<>();
+        boolean isElectric = "electric".equals(bike.getType());
+        
+        while (true) {
+            System.out.println("\n고장 사유를 선택하세요 (완료 시 0):");
+            int idx = 1;
+            for (BreakdownReason r : BreakdownReason.values()) {
+                System.out.printf("%d. %s\n", idx++, r);
+            }
+            System.out.print("선택하세요: ");
+            int choice = getMenuChoice(0, BreakdownReason.values().length);
+            if (choice == 0) break;
+            
+            BreakdownReason reason = BreakdownReason.values()[choice - 1];
+            if (!isElectric && reason == BreakdownReason.BATTERY) {
+                System.out.println("오류 메시지: 일반 자전거는 배터리 문제를 선택할 수 없습니다. 다시 선택해주세요.");
+                continue;
+            }
+            reasons.add(reason);
+        }
+        
+        if (reasons.isEmpty()) {
+            System.out.println("신고가 취소되었습니다.");
+            return;
+        }
+        
+        bike.getBikeState().reportBroken(reasons);
+        BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
+        subject.addObserver(repairObserver);
+        subject.report();
+        System.out.println("수리 신고가 접수되었습니다.");
     }
     
     private void viewBicyclesByStatus() {
         System.out.println("\n상태를 선택하세요:");
-        System.out.println("1. 대여가능");
-        System.out.println("2. 대여중");
-        System.out.println("3. 정비중");
+        System.out.println("1. 대여 가능");
+        System.out.println("2. 대여 중");
+        System.out.println("3. 수리 중");
         System.out.println("4. 고장");
         
         int choice = getMenuChoice(1, 4);
@@ -231,24 +295,15 @@ public class ConsoleInterface {
         bicycleManager.listBicyclesByStatus(status);
     }
     
-    private void changeBicycleStatus() {
-        System.out.print("상태를 변경할 자전거 ID를 입력하세요: ");
-        String id = scanner.nextLine();
-        
-        System.out.println("\n새로운 상태를 선택하세요:");
-        System.out.println("1. 대여가능");
-        System.out.println("2. 대여중");
-        System.out.println("3. 정비중");
-        System.out.println("4. 고장");
-        
-        int choice = getMenuChoice(1, 4);
-        BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
-        bicycleManager.changeBicycleStatus(id, newStatus);
-    }
-    
     private void changeBicycleLocation() {
         System.out.print("위치를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
+
+        // 위치 이동 가능한 상태인지 조회
+        Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike != null) {
+            if (!bike.getBikeState().canMove()) return;
+        }
         
         LocationManager locationManager = LocationManager.getInstance();
         
@@ -377,12 +432,21 @@ public class ConsoleInterface {
             System.out.println("이 스테이션에 해당 자전거가 없습니다.");
             return;
         }
+
+        // 대여 가능 여부 확인
+        Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike != null) {
+            if (!bike.getBikeState().canRent()) {
+                return;
+            }
+        }
         
-        bicycleManager.rentBicycle(id); // 자전거 대여 처리
-        currentUser.startRental(id);    // 사용자 대여 상태 업데이트
+        if (bicycleManager.rentBicycle(id)) { // 자전거 대여 처리
+            currentUser.startRental(id); 
+        }   // 사용자 대여 상태 업데이트
     }
     
-   private void returnBicycle() {
+    private void returnBicycle() {
         System.out.print("반납할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
@@ -399,7 +463,6 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-
         
         Bicycle bicycle = bicycleManager.getBicycle(id);
         if (bicycle == null) {
@@ -408,7 +471,6 @@ public class ConsoleInterface {
         }
         
         String bicycleType = bicycle.getType();
-
         
         int minutes = bicycleManager.returnBicycle(id, stationName);
         
@@ -442,10 +504,8 @@ public class ConsoleInterface {
             
             System.out.println("최종 요금: " + fee + "원");
             System.out.println("---------------------------------");
-
             
             // (여기에 잔액 관리 기능도 넣으면 될 것 같아요.)
-          
         }
     }
     
