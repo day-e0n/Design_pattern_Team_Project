@@ -161,9 +161,15 @@ public class ConsoleInterface {
                     calculatePrice();
                     break;
                 case 5:
-                    currentUser = null; // 로그아웃
-                    System.out.println("로그아웃되었습니다.");
-                    return;
+                    if (currentUser.isRenting()) {
+                        System.out.println("현재 대여 중인 자전거("
+                            + currentUser.getRentedBicycleId() + ")가 있습니다. 반납 후 로그아웃 해주세요.");
+                    } else {
+                        currentUser = null; // 로그아웃
+                        System.out.println("로그아웃되었습니다.");
+                        return;
+                    }
+                    break;
                 case 0:
                     System.out.println("사용자 모드를 종료합니다.");
                     return;
@@ -372,7 +378,8 @@ public class ConsoleInterface {
             return;
         }
         
-        bicycleManager.rentBicycle(id);
+        bicycleManager.rentBicycle(id); // 자전거 대여 처리
+        currentUser.startRental(id);    // 사용자 대여 상태 업데이트
     }
     
    private void returnBicycle() {
@@ -408,6 +415,7 @@ public class ConsoleInterface {
         // 반납이 성공적으로 이뤄졌을 때만 (minutes >= 0) 요금 계산을 진행
         if (minutes >= 0) {
             
+            currentUser.endRental(); // 사용자 대여 상태 업데이트(반납 완료)
             System.out.println("\n--- 반납 완료! (" + minutes + "초 이용) ---");
             System.out.println("--- 요금 계산을 시작합니다. (테스트: 1초 = 1분) ---");
         

@@ -12,6 +12,8 @@ public class User {
     private String phoneNumber;
     private String location;
     private String userType; // "regular" 또는 "student"
+    private boolean renting = false; // 대여 상태
+    private String rentedBicycleId = null; // 대여 중인 자전거 ID
 
     public User(String userId, String passwordHash, String name, String phoneNumber, String location) {
         this(userId, passwordHash, name, phoneNumber, location, "regular");
@@ -52,6 +54,24 @@ public class User {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public boolean isRenting() {
+        return renting;
+    }
+
+    public String getRentedBicycleId() {
+        return rentedBicycleId;
+    }
+
+    public void startRental(String bicycleId) {
+        this.renting = true;
+        this.rentedBicycleId = bicycleId;
+    }
+
+    public void endRental() {
+        this.renting = false;
+        this.rentedBicycleId = null;
     }
 
     // CSV 한 줄로 변환
