@@ -8,6 +8,7 @@ package core;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -22,6 +23,7 @@ public class UserManager {
 
         try (BufferedWriter writer = Files.newBufferedWriter(
                 path,
+                StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE,   // 파일 없으면 생성
                 StandardOpenOption.APPEND    // 항상 맨 뒤에 추가
         )) {
@@ -57,7 +59,7 @@ public class UserManager {
 
         String passwordHash = PasswordUtil.hashPassword(password);
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             String line = reader.readLine(); // 헤더 건너뛰기
             
             while ((line = reader.readLine()) != null) {
@@ -98,7 +100,7 @@ public class UserManager {
             return false;
         }
 
-        try (BufferedReader reader = Files.newBufferedReader(path)) {
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             reader.readLine(); // 헤더 건너뛰기
             
             String line;
