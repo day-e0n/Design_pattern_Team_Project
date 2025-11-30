@@ -16,6 +16,9 @@ public class LocationManager {
     
     // 스테이션 이름 → 자전거 ID 리스트 매핑
     private Map<String, List<String>> stationToBikesMap;
+
+    // 스테이션 이름 → 수리 센터 이동 시간 매핑 (OCP 적용)
+    private Map<String, Integer> stationMoveTimes;
     
     // 위치 변경 옵저버들
     private List<LocationObserver> observers;
@@ -24,6 +27,7 @@ public class LocationManager {
     private LocationManager() {
         this.bikeToStationMap = new HashMap<>();
         this.stationToBikesMap = new HashMap<>();
+        this.stationMoveTimes = new LinkedHashMap<>();
         this.observers = new ArrayList<>();
         
         // 초기 스테이션 생성
@@ -38,12 +42,24 @@ public class LocationManager {
         return instance;
     }
     
-    // 초기 스테이션 설정
+    // 초기 스테이션 설정 (외부 파일이나 DB에서 로딩한다고 가정하면 이 부분만 수정하면 됨)
     private void initializeStations() {
-        String[] stations = {"성복동", "상현동", "죽전동", "보정동"};
-        for (String station : stations) {
-            stationToBikesMap.put(station, new ArrayList<>());
-        }
+        // addStation 메서드를 통해 등록하므로 내부 구조를 몰라도 됨
+        addStation("성복동", 6);
+        addStation("상현동", 5);
+        addStation("죽전동", 4);
+        addStation("보정동", 3);
+    }
+    
+    // 스테이션 추가 메서드 (확장성 확보)
+    public void addStation(String name, int moveTime) {
+        stationToBikesMap.putIfAbsent(name, new ArrayList<>());
+        stationMoveTimes.put(name, moveTime);
+    }
+
+    // 스테이션 ~ 수리 센터 이동시간 반환
+    public int getMoveTime(String station) {
+        return stationMoveTimes.getOrDefault(station, 3); // 기본값 3
     }
     
     // 자전거 위치 등록
@@ -111,9 +127,9 @@ public class LocationManager {
     
     // 스테이션 번호로 이름 가져오기
     public String getStationNameByNumber(int number) {
-        String[] stations = {"성복동", "상현동", "죽전동", "보정동"};
-        if (number >= 1 && number <= stations.length) {
-            return stations[number - 1];
+        List<String> stations = new ArrayList<>(stationMoveTimes.keySet());
+        if (number >= 1 && number <= stations.size()) {
+            return stations.get(number - 1);
         }
         return null;
     }
@@ -121,9 +137,9 @@ public class LocationManager {
     // 스테이션 목록 출력 (번호와 함께)
     public void showStationList() {
         System.out.println("\n==== 스테이션 목록 ====");
-        String[] stations = {"성복동", "상현동", "죽전동", "보정동"};
-        for (int i = 0; i < stations.length; i++) {
-            System.out.printf("%d. %s\n", i + 1, stations[i]);
+        int stationNum = 1;
+        for (String station : stationMoveTimes.keySet()) {
+            System.out.printf("%d. %s\n", stationNum++, station);
         }
     }
     
@@ -138,7 +154,8 @@ public class LocationManager {
         System.out.println("\n" + station + "의 대여 가능한 자전거:");
         for (String bikeId : bikes) {
             Bicycle bike = bicycleManager.getBicycle(bikeId);
-            if (bike != null && bike.getStatus() == BicycleStatus.AVAILABLE) {
+            // state 패턴 적용 
+            if (bike != null && bike.getBikeState().getStatus().equals("사용 가능")) {
                 System.out.println("  - " + bike);
             }
         }
