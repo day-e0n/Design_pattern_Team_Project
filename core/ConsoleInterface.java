@@ -37,12 +37,12 @@ public class ConsoleInterface {
         // (수정됨) 생성자 인자 수정 (3개로 변경)
         this.repairObserver = new RepairServiceObserver(bicycleManager, scheduler, new RepairStrategy());
     }
-    
+
     public void start() {
         System.out.println("=======================================");
         System.out.println("     자전거 공유 시스템 ");
         System.out.println("=======================================");
-        
+
         while (true) {
             isAdminMode = false;
             
@@ -129,7 +129,7 @@ public class ConsoleInterface {
         System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
-    
+
     private void adminMode() {
         isAdminMode = true;
         System.out.println("\n 관리자 모드에 들어갑니다.");
@@ -155,7 +155,7 @@ public class ConsoleInterface {
             }
         }
     }
-    
+
     private void showAdminMenu() {
         System.out.println("\n==== 관리자 메뉴 ====");
         System.out.println("1. 자전거 추가");
@@ -169,7 +169,7 @@ public class ConsoleInterface {
         System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
-    
+
     private void userMode() {
         System.out.println("\n 사용자 모드에 들어갑니다.");
         System.out.println("현재 잔액: " + currentUser.getBalance() + "원");
@@ -190,7 +190,7 @@ public class ConsoleInterface {
             }
         }
     }
-    
+
     private void showUserMenu() {
         System.out.println("\n==== 사용자 메뉴 ====");
         System.out.println("1. 대여 가능한 자전거 보기");
@@ -220,21 +220,21 @@ public class ConsoleInterface {
         String id = scanner.nextLine();
         System.out.print("자전거 유형을 선택하세요 (regular/electric): ");
         String type = scanner.nextLine().toLowerCase();
-        
+
         LocationManager locationManager = LocationManager.getInstance();
         System.out.println("\n초기 위치(스테이션)를 선택하세요:");
         locationManager.showStationList();
         System.out.print("번호를 입력하세요: ");
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
-        
+
         if (stationName == null) {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
         bicycleManager.addBicycle(id, type, stationName);
     }
-    
+
     private void removeBicycle() {
         System.out.print("삭제할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
@@ -280,18 +280,18 @@ public class ConsoleInterface {
             System.out.println("수리 신고가 접수되었습니다.");
         }
     }
-    
+
     private void viewBicyclesByStatus() {
         System.out.println("\n상태를 선택하세요:");
         System.out.println("1. 대여가능");
         System.out.println("2. 대여중");
         System.out.println("3. 정비중");
         System.out.println("4. 고장");
-        
+
         int choice = getMenuChoice(1, 4);
         bicycleManager.listBicyclesByStatus(BicycleStatus.values()[choice - 1]);
     }
-    
+
     private void changeBicycleStatus() {
         System.out.print("상태를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
@@ -300,12 +300,12 @@ public class ConsoleInterface {
         System.out.println("2. 대여중");
         System.out.println("3. 정비중");
         System.out.println("4. 고장");
-        
+
         int choice = getMenuChoice(1, 4);
         BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
-        bicycleManager.changeBicycleStatus(id, newStatus);
+
     }
-    
+
     private void changeBicycleLocation() {
         System.out.print("위치를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
@@ -318,20 +318,20 @@ public class ConsoleInterface {
         System.out.print("번호를 입력하세요: ");
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
-        
+
         if (stationName == null) {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
         bicycleManager.changeBicycleLocation(id, stationName);
     }
-    
+
     private void viewBicycleDetails() {
         System.out.print("상세 정보를 볼 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         bicycleManager.showBicycleDetails(id);
     }
-    
+
     // 사용자 기능들
     private void viewAvailableBicycles() {
         LocationManager locationManager = LocationManager.getInstance();
@@ -340,14 +340,14 @@ public class ConsoleInterface {
         System.out.print("번호를 입력하세요: ");
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
-        
+
         if (stationName == null) {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
         locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
     }
-    
+
     private void rentBicycle() {
         if (currentUser.isRenting()) {
             System.out.println("이미 대여 중인 자전거가 있습니다 (" + currentUser.getRentedBicycleId() + ")");
@@ -360,24 +360,24 @@ public class ConsoleInterface {
         System.out.print("번호를 입력하세요: ");
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
-        
+
         if (stationName == null) {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        
+
         // 해당 스테이션의 대여 가능한 자전거 보기
         locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
-        
+
         List<String> bikesAtStation = locationManager.getBicyclesAtStation(stationName);
         if (bikesAtStation.isEmpty()) {
             System.out.println("이 스테이션에는 대여 가능한 자전거가 없습니다.");
             return;
         }
-        
+
         System.out.print("\n대여할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
-        
+
         // 해당 스테이션에 자전거가 있는지 확인
         if (!bikesAtStation.contains(id)) {
             System.out.println("이 스테이션에 해당 자전거가 없습니다.");
@@ -436,7 +436,7 @@ public class ConsoleInterface {
             PricingStrategy strategy = strategyFactory.getStrategy(currentUser.getUserType(), type);
             pricingContext.setStrategy(strategy);
             int fee = pricingContext.calculatePrice(minutes);
-            
+
             System.out.println("---------------------------------");
             System.out.println("        결제 명세서");
             System.out.println("---------------------------------");
@@ -476,7 +476,7 @@ public class ConsoleInterface {
             }
         }
     }
-    
+
     private int getIntInput() {
         while (true) {
             try {
