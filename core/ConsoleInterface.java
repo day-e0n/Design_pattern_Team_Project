@@ -184,7 +184,7 @@ public class ConsoleInterface {
 
         while (true) {
             showAdminMenu();
-            int choice = getMenuChoice(0, 8);
+            int choice = getMenuChoice(0, 7);
 
             switch (choice) {
                 case 1: addBicycle(); break;
@@ -192,10 +192,9 @@ public class ConsoleInterface {
                 case 3: executeCommand(new ListAllBicyclesCommand(bicycleManager)); 
                         break;
                 case 4: viewBicyclesByStatus(); break;
-                case 5: reportBrokenBicycle(); break;
-                case 6: changeBicycleLocation(); break;
-                case 7: viewBicycleDetails(); break;
-                case 8: bicycleManager.showStatistics(); break;
+                case 5: changeBicycleLocation(); break;
+                case 6: viewBicycleDetails(); break;
+                case 7: bicycleManager.showStatistics(); break;
                 case 0:
                     System.out.println("관리자 모드를 종료합니다.");
                     isAdminMode = false;
@@ -211,10 +210,9 @@ public class ConsoleInterface {
         System.out.println("2. 자전거 삭제");
         System.out.println("3. 전체 자전거 목록");
         System.out.println("4. 상태별 자전거 조회");
-        System.out.println("5. 자전거 고장 신고");
-        System.out.println("6. 자전거 위치 변경");
-        System.out.println("7. 자전거 상세 정보");
-        System.out.println("8. 통계 보기");
+        System.out.println("5. 자전거 위치 변경");
+        System.out.println("6. 자전거 상세 정보");
+        System.out.println("7. 통계 보기");
         System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
@@ -225,13 +223,14 @@ public class ConsoleInterface {
         
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 4); 
+            int choice = getMenuChoice(0, 5); 
             
             switch (choice) {
                 case 1: viewAvailableBicycles(); break;
                 case 2: rentBicycle(); break;
                 case 3: returnBicycle(); break;
                 case 4: chargeBalance(); break;
+                case 5: reportBrokenBicycle(); break;
                 case 0:
                     currentUser = null;
                     System.out.println("로그아웃 되었습니다.");
@@ -246,6 +245,7 @@ public class ConsoleInterface {
         System.out.println("2. 자전거 대여");
         System.out.println("3. 자전거 반납");
         System.out.println("4. 잔액 충전");
+        System.out.println("5. 자전거 고장 신고");
         System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
