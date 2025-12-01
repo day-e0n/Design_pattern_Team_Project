@@ -1,12 +1,12 @@
 package core;
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /*
  * 자전거 관리 시스템
@@ -185,12 +185,12 @@ public class BicycleManager {
         return true;
     }
 
-    // 자전거 추가
+    // 자전거 추가 -> 관리자 1번
     public boolean addBicycle(String id, String type, String location) {
         return addBicycleInternal(id, type, location, true);
     }
 
-    // 자전거 삭제
+    // 자전거 삭제 -> 관리자 2번
     public boolean removeBicycle(String id) {
         if (!bicycles.containsKey(id)) {
             System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
@@ -220,7 +220,7 @@ public class BicycleManager {
         return bicycles.get(id);
     }
 
-    // 모든 자전거 목록 조회
+    // 모든 자전거 목록 조회 -> 관리자 3번
     public void listAllBicycles() {
         if (bicycles.isEmpty()) {
             System.out.println("등록된 자전거가 없습니다.");
@@ -233,7 +233,7 @@ public class BicycleManager {
         }
     }
 
-    // 상태별 자전거 조회
+    // 상태별 자전거 조회 -> 관리자 4번
     public void listBicyclesByStatus(BicycleStatus status) {
         System.out.println("\n==== " + status.getDescription() + " 자전거 목록 ====");
         boolean found = false;
@@ -273,7 +273,7 @@ public class BicycleManager {
         return true;
     }
 
-    // 자전거 위치 변경
+    // 자전거 위치 변경 -> 관리자 6번
     public boolean changeBicycleLocation(String id, String newLocation) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
@@ -293,7 +293,7 @@ public class BicycleManager {
         return true;
     }
 
-    // 자전거 상세 정보 조회
+    // 자전거 상세 정보 조회 -> 관리자 7번
     public void showBicycleDetails(String id) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
@@ -305,7 +305,7 @@ public class BicycleManager {
         System.out.println(bicycle.getDetailedInfo());
     }
 
-    // 대여 가능한 자전거 목록
+    // 대여 가능한 자전거 목록 -> 사용자 1번
     public List<Bicycle> getAvailableBicycles() {
         List<Bicycle> available = new ArrayList<>();
         for (Bicycle bicycle : bicycles.values()) {
@@ -316,7 +316,7 @@ public class BicycleManager {
         return available;
     }
 
-    // 자전거 대여 + 자전거 대여 시 시간 기록
+    // 자전거 대여 + 자전거 대여 시 시간 기록 -> 사용자 2번
     public boolean rentBicycle(String id) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
@@ -343,7 +343,7 @@ public class BicycleManager {
 
     }
 
-    // 자전거 반납 + 대여 시간 계산
+    // 자전거 반납 + 대여 시간 계산 -> 사용자 3번
     public int returnBicycle(String id, String returnLocation) {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
@@ -392,7 +392,7 @@ public class BicycleManager {
         return durationMinutes; // <-- ★★★ (수정) boolean이 아닌 int 반환
     }
 
-    // 통계 정보
+    // 통계 정보 -> 관리자 8번
     public void showStatistics() {
         System.out.println("\n==== 자전거 현황 통계 ====");
         Map<BicycleStatus, Integer> statusCount = new HashMap<>();
