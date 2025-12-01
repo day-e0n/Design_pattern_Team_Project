@@ -1,6 +1,12 @@
 {
   "bicycle": [
     {
+      "id": "R001",
+      "type": "regular",
+      "station": "상현동",
+      "status": "AVAILABLE"
+    },
+    {
       "id": "R002",
       "type": "regular",
       "station": "성복동",
