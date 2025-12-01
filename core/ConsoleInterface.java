@@ -1,12 +1,12 @@
 package core;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import observer.*;
 import strategy.*;
+import java.util.ArrayList;
+import java.util.List;     
 
 /**
  * 콘솔 기반 사용자 인터페이스
@@ -33,8 +33,8 @@ public class ConsoleInterface {
         this.userManager = new UserManager();
         this.scheduler = Executors.newScheduledThreadPool(4);
         
-        // ★ [수정됨] RepairServiceObserver 생성자 인자 수정 (3개로 변경, rentalObserver 제거)
-        // RentalServiceObserver는 현재 로직에서 사용되지 않으므로 제거하거나 필요시 기본 생성자로 생성
+        // RepairServiceObserver 생성
+        // (수정됨) 생성자 인자 수정 (3개로 변경)
         this.repairObserver = new RepairServiceObserver(bicycleManager, scheduler, new RepairStrategy());
     }
     
@@ -93,7 +93,7 @@ public class ConsoleInterface {
 
     private void registerUser() {
         System.out.println("\n==== 회원가입 ====");
-        System.out.print("사용자 ID: ");
+        System.out.print("사용자 ID를 입력하세요: ");
         String userId = scanner.nextLine().trim();
         
         if (userManager.isUserIdExists(userId)) {
@@ -101,18 +101,18 @@ public class ConsoleInterface {
             return;
         }
 
-        System.out.print("비밀번호: ");
+        System.out.print("비밀번호를 입력하세요: ");
         String password = scanner.nextLine();
         String passwordHash = PasswordUtil.hashPassword(password);
 
-        System.out.print("이름: ");
+        System.out.print("이름을 입력하세요: ");
         String name = scanner.nextLine().trim();
-        System.out.print("전화번호: ");
+        System.out.print("전화번호를 입력하세요: ");
         String phoneNumber = scanner.nextLine().trim();
-        System.out.print("거주 지역: ");
+        System.out.print("거주 지역을 입력하세요: ");
         String location = scanner.nextLine().trim();
         
-        System.out.print("회원 유형 (1: 일반, 2: 학생): ");
+        System.out.print("회원 유형을 선택하세요 (1: 일반, 2: 학생): ");
         int userTypeChoice = getMenuChoice(1, 2);
         String userType = (userTypeChoice == 2) ? "student" : "regular";
         
@@ -176,7 +176,7 @@ public class ConsoleInterface {
         
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 4);
+            int choice = getMenuChoice(0, 4); 
             
             switch (choice) {
                 case 1: viewAvailableBicycles(); break;
@@ -200,7 +200,7 @@ public class ConsoleInterface {
         System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
-    
+
     private void chargeBalance() {
         System.out.println("\n==== 잔액 충전 ====");
         System.out.print("충전할 금액을 입력하세요: ");
@@ -213,8 +213,8 @@ public class ConsoleInterface {
         
         userManager.rechargeBalance(currentUser.getUserId(), amount);
     }
-
-    // --- 기존 관리자/사용자 메서드들 ---
+    
+    // 관리자 기능들
     private void addBicycle() {
         System.out.print("자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
@@ -245,7 +245,7 @@ public class ConsoleInterface {
     }
 
     private void reportBrokenBicycle() {
-        System.out.print("신고할 ID: ");
+        System.out.print("신고할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         core.Bicycle bike = bicycleManager.getBicycle(id);
         if (bike == null) {
@@ -259,13 +259,14 @@ public class ConsoleInterface {
         BreakdownReason[] values = BreakdownReason.values();
         
         while (true) {
-            System.out.println("\n고장 사유 (완료: 0):");
+            System.out.println("\n고장 사유를 선택하세요 (완료 시 0):");
             for (int i = 0; i < values.length; i++) System.out.printf("%d. %s\n", i + 1, values[i]);
+            System.out.print("선택하세요: ");
             int c = getMenuChoice(0, values.length);
             if (c == 0) break;
             BreakdownReason reason = values[c - 1];
             if (!isElectric && reason == BreakdownReason.BATTERY) {
-                System.out.println("일반 자전거는 배터리 선택 불가.");
+                System.out.println("오류: 일반 자전거는 배터리 문제를 선택할 수 없습니다. 다시 선택해주세요.");
                 continue;
             }
             reasons.add(reason);
@@ -276,21 +277,30 @@ public class ConsoleInterface {
             BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
             subject.addObserver(repairObserver);
             subject.report();
-            System.out.println("수리 신고 접수 완료.");
+            System.out.println("수리 신고가 접수되었습니다.");
         }
     }
     
     private void viewBicyclesByStatus() {
-        System.out.println("1.대여가능 2.대여중 3.수리중 4.고장");
-        int c = getMenuChoice(1, 4);
-        bicycleManager.listBicyclesByStatus(BicycleStatus.values()[c-1]);
+        System.out.println("\n상태를 선택하세요:");
+        System.out.println("1. 대여가능");
+        System.out.println("2. 대여중");
+        System.out.println("3. 정비중");
+        System.out.println("4. 고장");
+        
+        int choice = getMenuChoice(1, 4);
+        bicycleManager.listBicyclesByStatus(BicycleStatus.values()[choice - 1]);
     }
     
     private void changeBicycleStatus() {
         System.out.print("상태를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         System.out.println("\n새로운 상태를 선택하세요:");
-        System.out.println("1. 대여가능 2.대여중 3.정비중 4.고장");
+        System.out.println("1. 대여가능");
+        System.out.println("2. 대여중");
+        System.out.println("3. 정비중");
+        System.out.println("4. 고장");
+        
         int choice = getMenuChoice(1, 4);
         BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
         bicycleManager.changeBicycleStatus(id, newStatus);
@@ -322,6 +332,7 @@ public class ConsoleInterface {
         bicycleManager.showBicycleDetails(id);
     }
     
+    // 사용자 기능들
     private void viewAvailableBicycles() {
         LocationManager locationManager = LocationManager.getInstance();
         System.out.println("\n현재 위치를 선택하세요:");
@@ -339,7 +350,7 @@ public class ConsoleInterface {
     
     private void rentBicycle() {
         if (currentUser.isRenting()) {
-            System.out.println("이미 대여 중인 자전거가 있습니다: " + currentUser.getRentedBicycleId());
+            System.out.println("이미 대여 중인 자전거가 있습니다 (" + currentUser.getRentedBicycleId() + ")");
             return;
         }
 
@@ -355,6 +366,7 @@ public class ConsoleInterface {
             return;
         }
         
+        // 해당 스테이션의 대여 가능한 자전거 보기
         locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
         
         List<String> bikesAtStation = locationManager.getBicyclesAtStation(stationName);
@@ -366,6 +378,7 @@ public class ConsoleInterface {
         System.out.print("\n대여할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
+        // 해당 스테이션에 자전거가 있는지 확인
         if (!bikesAtStation.contains(id)) {
             System.out.println("이 스테이션에 해당 자전거가 없습니다.");
             return;
@@ -383,6 +396,7 @@ public class ConsoleInterface {
     
     private void returnBicycle() {
         String id = currentUser.getRentedBicycleId();
+        
         if (id == null) {
             System.out.println("대여 중인 자전거가 없습니다.");
             System.out.print("반납할 자전거 ID를 직접 입력하시겠습니까? (y/n): ");
@@ -443,10 +457,12 @@ public class ConsoleInterface {
         }
     }
     
+    // 유틸리티 메서드들
     private int getMenuChoice(int min, int max) {
         while (true) {
             try {
                 String input = scanner.nextLine().trim();
+                // 공백 입력 처리
                 if (input.isEmpty()) continue;
                 
                 int choice = Integer.parseInt(input);
