@@ -55,21 +55,62 @@ public class ConsoleInterface {
             isAdminMode = false;
             
             if (currentUser == null) {
+                // 맨 처음에 메인 메뉴를 먼저 보여주고, 이후 로그인/회원가입 진행
+                showMainMenu();
+                int mainChoice = getMenuChoice(0, 2);
+                if (mainChoice == 0) {
+                    System.out.println("시스템을 종료합니다. 안녕히 가세요!");
+                    scheduler.shutdownNow();
+                    return;
+                }
+
                 showLoginMenu();
                 int choice = getMenuChoice(0, 2);
                 switch (choice) {
-                    case 1: loginUser(); break;
-                    case 2: registerUser(); break;
-                    case 0: 
+                    case 1:
+                        loginUser();
+                        // 로그인 성공 시 사용자가 선택한 모드로 이동
+                        if (currentUser != null) {
+                            if (mainChoice == 1) { // 관리자 선택
+                                if ("admin".equals(currentUser.getUserType())) {
+                                    adminMode();
+                                } else {
+                                    System.out.println("관리자 권한이 없습니다. 사용자 모드로 이동합니다.");
+                                    userMode();
+                                }
+                            } else { // 사용자 선택
+                                userMode();
+                            }
+                        }
+                        break;
+                    case 2:
+                        registerUser();
+                        break;
+                    case 0:
                         System.out.println("시스템을 종료합니다. 안녕히 가세요!");
                         scheduler.shutdownNow();
                         return;
                 }
             } else {
-                if ("admin".equals(currentUser.getUserType())) {
-                    adminMode();
-                } else {
-                    userMode();
+                // 로그인된 사용자는 기존처럼 메인 메뉴에서 모드 선택
+                showMainMenu();
+                int choice = getMenuChoice(0, 2);
+                switch (choice) {
+                    case 1:
+                        if ("admin".equals(currentUser.getUserType())) {
+                            adminMode();
+                        } else {
+                            System.out.println("관리자 권한이 없습니다. 사용자 모드로 이동합니다.");
+                            userMode();
+                        }
+                        break;
+                    case 2:
+                        userMode();
+                        break;
+                    case 0:
+                        currentUser = null;
+                        System.out.println("로그아웃 되었습니다.");
+                        break;
                 }
             }
         }
@@ -123,7 +164,6 @@ public class ConsoleInterface {
         System.out.print("회원 유형을 선택하세요 (1: 일반, 2: 학생): ");
         int userTypeChoice = getMenuChoice(1, 2);
         String userType = (userTypeChoice == 2) ? "student" : "regular";
-        
         // 초기 잔액 10000원 지급
         User user = new User(userId, passwordHash, name, phoneNumber, location, userType, 10000);
         userManager.saveUser(user);
@@ -134,7 +174,7 @@ public class ConsoleInterface {
         System.out.println("\n==== 메인 메뉴 ====");
         System.out.println("1. 관리자 모드");
         System.out.println("2. 사용자 모드");
-        System.out.println("0. 로그아웃");
+        System.out.println("0. 종료");
         System.out.print("선택하세요: ");
     }
 
@@ -212,14 +252,16 @@ public class ConsoleInterface {
 
     private void chargeBalance() {
         System.out.println("\n==== 잔액 충전 ====");
+        System.out.println("현재 잔액: " + currentUser.getBalance() + "원");
         System.out.print("충전할 금액을 입력하세요: ");
         int amount = getIntInput();
-        
+
         if (amount <= 0) {
             System.out.println("0원보다 큰 금액을 입력해주세요.");
             return;
         }
-        
+
+        // UserManager.rechargeBalance()가 users.csv에 저장합니다.
         userManager.rechargeBalance(currentUser.getUserId(), amount);
     }
     
@@ -408,7 +450,15 @@ public class ConsoleInterface {
         if (bike != null && !bike.getBikeState().canRent()) {
             return;
         }
-        
+
+        // 대여 전 최종 확인 추가
+        System.out.print("대여하시겠습니까? (y/n): ");
+        String confirm = scanner.nextLine().trim();
+        if (!confirm.equalsIgnoreCase("y")) {
+            System.out.println("대여가 취소되었습니다.");
+            return;
+        }
+
         if (bicycleManager.rentBicycle(id)) {
             currentUser.startRental(id);
         }
