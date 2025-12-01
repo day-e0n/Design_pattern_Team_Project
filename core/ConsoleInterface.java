@@ -64,32 +64,36 @@ public class ConsoleInterface {
                     return;
                 }
 
-                showLoginMenu();
-                int choice = getMenuChoice(0, 2);
-                switch (choice) {
-                    case 1:
-                        loginUser();
-                        // 로그인 성공 시 사용자가 선택한 모드로 이동
-                        if (currentUser != null) {
-                            if (mainChoice == 1) { // 관리자 선택
-                                if ("admin".equals(currentUser.getUserType())) {
-                                    adminMode();
-                                } else {
-                                    System.out.println("관리자 권한이 없습니다. 사용자 모드로 이동합니다.");
-                                    userMode();
-                                }
-                            } else { // 사용자 선택
+                if (mainChoice == 1) { // 관리자 모드 선택
+                    // 바로 로그인 화면으로
+                    System.out.println("\n==== 관리자 로그인 ====");
+                    loginUser();
+                    if (currentUser != null) {
+                        if ("admin".equals(currentUser.getUserType())) {
+                            adminMode();
+                        } else {
+                            System.out.println("관리자 권한이 없습니다.");
+                            currentUser = null;
+                        }
+                    }
+                } else { // 사용자 모드 선택
+                    showLoginMenu();
+                    int choice = getMenuChoice(0, 2);
+                    switch (choice) {
+                        case 1:
+                            loginUser();
+                            if (currentUser != null) {
                                 userMode();
                             }
-                        }
-                        break;
-                    case 2:
-                        registerUser();
-                        break;
-                    case 0:
-                        System.out.println("시스템을 종료합니다. 안녕히 가세요!");
-                        scheduler.shutdownNow();
-                        return;
+                            break;
+                        case 2:
+                            registerUser();
+                            break;
+                        case 0:
+                            System.out.println("시스템을 종료합니다. 안녕히 가세요!");
+                            scheduler.shutdownNow();
+                            return;
+                    }
                 }
             } else {
                 // 로그인된 사용자는 기존처럼 메인 메뉴에서 모드 선택
