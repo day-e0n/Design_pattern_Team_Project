@@ -1,12 +1,6 @@
 {
   "bicycle": [
     {
-      "id": "R001",
-      "type": "regular",
-      "station": "상현동",
-      "status": "AVAILABLE"
-    },
-    {
       "id": "R002",
       "type": "regular",
       "station": "성복동",
@@ -19,10 +13,16 @@
       "status": "AVAILABLE"
     },
     {
+      "id": "R001",
+      "type": "regular",
+      "station": "상현동",
+      "status": "AVAILABLE"
+    },
+    {
       "id": "E001",
       "type": "electric",
       "station": "죽전동",
-      "status": "AVAILABLE"
+      "status": "BROKEN"
     },
     {
       "id": "E002",

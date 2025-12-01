@@ -320,6 +320,8 @@ public class ConsoleInterface {
     private void reportBrokenBicycle() {
         System.out.print("신고할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
+
+        // 고장 신고 가능 상태 검증 
         core.Bicycle bike = bicycleManager.getBicycle(id);
         if (bike == null) {
             System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
@@ -327,6 +329,7 @@ public class ConsoleInterface {
         }
         if (!bike.getBikeState().canReport()) return;
         
+        // 고장 사유 입력(반복문으로 복수 선택 가능)
         List<BreakdownReason> reasons = new ArrayList<>();
         boolean isElectric = "전기자전거".equals(bike.getType());
         BreakdownReason[] values = BreakdownReason.values();
@@ -345,12 +348,11 @@ public class ConsoleInterface {
             reasons.add(reason);
         }
 
+        // subject에게 알리는 옵저버 패턴 기능을 bicycleManager에 위임함 
         if (!reasons.isEmpty()) {
-            bike.getBikeState().reportBroken(reasons);
-            BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
-            subject.addObserver(repairObserver);
-            subject.report();
-            System.out.println("수리 신고가 접수되었습니다.");
+            bicycleManager.reportBroken(id, reasons, repairObserver);
+        } else {
+            System.out.println("신고가 취소되었습니다.");
         }
     }
 
@@ -443,8 +445,15 @@ public class ConsoleInterface {
             return;
         }
 
+
+        // 대여 가능 상태 검증 
         core.Bicycle bike = bicycleManager.getBicycle(id);
-        if (bike != null && !bike.getBikeState().canRent()) {
+        if (bike != null) {
+            if (!bike.getBikeState().canRent()) {
+                return;
+            }
+        } else {
+            System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
             return;
         }
 
