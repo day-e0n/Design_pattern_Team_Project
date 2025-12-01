@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import observer.*;
 import strategy.*;
+import command.*;
 import java.util.ArrayList;
 import java.util.List;     
 
@@ -37,6 +38,13 @@ public class ConsoleInterface {
         // (수정됨) 생성자 인자 수정 (3개로 변경)
         this.repairObserver = new RepairServiceObserver(bicycleManager, scheduler, new RepairStrategy());
     }
+
+    // Command Pattern_Invoker 역할
+     private void executeCommand(Command command) {
+        if (command != null) {
+            command.execute();
+        }
+     }
 
     public void start() {
         System.out.println("=======================================");
@@ -141,7 +149,8 @@ public class ConsoleInterface {
             switch (choice) {
                 case 1: addBicycle(); break;
                 case 2: removeBicycle(); break;
-                case 3: bicycleManager.listAllBicycles(); break;
+                case 3: executeCommand(new ListAllBicyclesCommand(bicycleManager)); 
+                        break;
                 case 4: viewBicyclesByStatus(); break;
                 case 5: reportBrokenBicycle(); break;
                 case 6: changeBicycleLocation(); break;
@@ -232,15 +241,19 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        bicycleManager.addBicycle(id, type, stationName);
+        Command cmd = new AddBicycleCommand(bicycleManager, id, type, stationName);
+        executeCommand(cmd);
     }
+
+    
 
     private void removeBicycle() {
         System.out.print("삭제할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         core.Bicycle bike = bicycleManager.getBicycle(id);
         if (bike != null && bike.getBikeState().canDelete()) {
-            bicycleManager.removeBicycle(id);
+            Command cmd = new RemoveBicycleCommand(bicycleManager, id);
+            executeCommand(cmd);
         }
     }
 
@@ -289,7 +302,10 @@ public class ConsoleInterface {
         System.out.println("4. 고장");
 
         int choice = getMenuChoice(1, 4);
-        bicycleManager.listBicyclesByStatus(BicycleStatus.values()[choice - 1]);
+        BicycleStatus status = BicycleStatus.values()[choice - 1];
+
+        Command cmd = new ListByStatusCommand(bicycleManager, status);
+        executeCommand(cmd);
     }
 
     private void changeBicycleStatus() {
@@ -304,6 +320,8 @@ public class ConsoleInterface {
         int choice = getMenuChoice(1, 4);
         BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
 
+        Command cmd = new ChangeStatusCommand(bicycleManager, id, newStatus);
+        executeCommand(cmd);
     }
 
     private void changeBicycleLocation() {
@@ -323,7 +341,9 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        bicycleManager.changeBicycleLocation(id, stationName);
+        
+        Command cmd = new ChangeLocationCommand(bicycleManager, id, stationName);
+        executeCommand(cmd);
     }
 
     private void viewBicycleDetails() {
