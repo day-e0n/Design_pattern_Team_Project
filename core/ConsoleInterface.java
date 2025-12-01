@@ -71,11 +71,23 @@ public class ConsoleInterface {
     private void adminMode() {
         isAdminMode = true;
         System.out.println("\n 관리자 모드에 들어갑니다.");
-        
+
+        // 관리자 인증 필요 (환경변수로 생성된 관리자 또는 수동 생성된 관리자 계정 사용)
+        System.out.print("관리자 ID: ");
+        String adminId = scanner.nextLine().trim();
+        System.out.print("비밀번호: ");
+        String adminPass = scanner.nextLine();
+        User admin = userManager.login(adminId, adminPass);
+        if (admin == null || !"admin".equals(admin.getUserType())) {
+            System.out.println("관리자 인증 실패. 관리자만 접근 가능합니다.");
+            return;
+        }
+        System.out.println("관리자 인증 성공. 환영합니다, " + admin.getName() + "님.");
+
         while (true) {
             showAdminMenu();
             int choice = getMenuChoice(0, 8);
-            
+
             switch (choice) {
                 case 1:
                     addBicycle();
@@ -249,34 +261,36 @@ public class ConsoleInterface {
         }
         // 신고 가능한 상태인지 조회 
         if (!bike.getBikeState().canReport()) return;
-        
         List<BreakdownReason> reasons = new ArrayList<>();
         boolean isElectric = "electric".equals(bike.getType());
-        
+
+        BreakdownReason[] values = BreakdownReason.values();
         while (true) {
             System.out.println("\n고장 사유를 선택하세요 (완료 시 0):");
-            int idx = 1;
-            for (BreakdownReason r : BreakdownReason.values()) {
-                System.out.printf("%d. %s\n", idx++, r);
+            for (int i = 0; i < values.length; i++) {
+                System.out.printf("%d. %s\n", i + 1, values[i]);
             }
             System.out.print("선택하세요: ");
-            int choice = getMenuChoice(0, BreakdownReason.values().length);
+            int choice = getMenuChoice(0, values.length);
             if (choice == 0) break;
-            
-            BreakdownReason reason = BreakdownReason.values()[choice - 1];
+
+            BreakdownReason reason = values[choice - 1];
             if (!isElectric && reason == BreakdownReason.BATTERY) {
-                System.out.println("오류 메시지: 일반 자전거는 배터리 문제를 선택할 수 없습니다. 다시 선택해주세요.");
+                System.out.println("오류: 일반 자전거는 배터리 문제를 선택할 수 없습니다. 다시 선택해주세요.");
                 continue;
             }
             reasons.add(reason);
         }
-        
+
         if (reasons.isEmpty()) {
             System.out.println("신고가 취소되었습니다.");
             return;
         }
-        
+
+        // 상태에 신고를 전달
         bike.getBikeState().reportBroken(reasons);
+
+        // Subject 생성 및 옵저버 등록
         BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
         subject.addObserver(repairObserver);
         subject.report();
