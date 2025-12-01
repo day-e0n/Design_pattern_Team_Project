@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import observer.BreakdownReason;
+import observer.BreakdownReportSubject;
+import observer.ObserverInterface;
 
 /*
  * 자전거 관리 시스템
@@ -198,9 +201,9 @@ public class BicycleManager {
         }
 
         Bicycle bicycle = bicycles.get(id);
-        if (bicycle.getStatus() == BicycleStatus.RENTED) {
-            System.out.println("오류: 대여 중인 자전거는 삭제할 수 없습니다.");
-            return false;
+        // state 패턴 적용
+        if (bicycle.getBikeState() != null && !bicycle.getBikeState().canDelete()) {
+            return false; // 거부 메시지는 State 객체가 이미 출력했을 수 있음
         }
 
         bicycles.remove(id);
@@ -248,6 +251,33 @@ public class BicycleManager {
         }
     }
 
+    // (추가) 고장 신고 처리 -> 관리자 5번
+    public boolean reportBroken(String id, List<BreakdownReason> reasons, ObserverInterface observer) {
+        Bicycle bicycle = bicycles.get(id);
+        if (bicycle == null) {
+            System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
+            return false;
+        }
+
+        // State 패턴: 신고 가능 상태 2차 검증
+        if (bicycle.getBikeState() != null && !bicycle.getBikeState().canReport()) {
+            return false;
+        }
+
+        // 상태 객체에 신고 전달 (상태를 BROKEN 등으로 변경)
+        bicycle.getBikeState().reportBroken(reasons);
+
+        // Observer 패턴: 알림 전송
+        boolean isElectric = "전기자전거".equals(bicycle.getType());
+        BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bicycle.getLocation(), isElectric);
+        subject.addObserver(observer);
+        subject.report();
+
+        saveBicyclesToJson(); // 상태가 변경되었으므로 저장
+        System.out.println("수리 신고가 접수되었습니다.");
+        return true;
+    }
+
     // 자전거 상태 변경
     public boolean changeBicycleStatus(String id, BicycleStatus newStatus) {
         Bicycle bicycle = bicycles.get(id);
@@ -278,6 +308,11 @@ public class BicycleManager {
         Bicycle bicycle = bicycles.get(id);
         if (bicycle == null) {
             System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
+            return false;
+        }
+
+        // state 패턴으로 이동 가능 상태 2차 검증 
+        if (bicycle.getBikeState() != null && !bicycle.getBikeState().canMove()) {
             return false;
         }
 
@@ -324,9 +359,8 @@ public class BicycleManager {
             return false;
         }
 
-        if (bicycle.getStatus() != BicycleStatus.AVAILABLE) {
-            System.out.println("오류: 대여할 수 없는 상태의 자전거입니다. (현재 상태: " +
-                    bicycle.getStatus().getDescription() + ")");
+        // state 패턴으로 대여 가능 상태 2차 검증 
+        if (bicycle.getBikeState() != null && !bicycle.getBikeState().canRent()) {
             return false;
         }
 
