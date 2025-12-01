@@ -1,13 +1,13 @@
 package core;
 
+import command.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import observer.*;
-import strategy.*;
-import command.*;
-import java.util.ArrayList;
-import java.util.List;     
+import strategy.*;     
 
 /**
  * 콘솔 기반 사용자 인터페이스
@@ -310,7 +310,7 @@ public class ConsoleInterface {
         if (!bike.getBikeState().canReport()) return;
         
         List<BreakdownReason> reasons = new ArrayList<>();
-        boolean isElectric = "electric".equals(bike.getType());
+        boolean isElectric = "전기자전거".equals(bike.getType());
         BreakdownReason[] values = BreakdownReason.values();
         
         while (true) {
@@ -338,31 +338,15 @@ public class ConsoleInterface {
 
     private void viewBicyclesByStatus() {
         System.out.println("\n상태를 선택하세요:");
-        System.out.println("1. 대여가능");
-        System.out.println("2. 대여중");
-        System.out.println("3. 정비중");
+        System.out.println("1. 대여 가능");
+        System.out.println("2. 대여 중");
+        System.out.println("3. 수리 중");
         System.out.println("4. 고장");
 
         int choice = getMenuChoice(1, 4);
         BicycleStatus status = BicycleStatus.values()[choice - 1];
 
         Command cmd = new ListByStatusCommand(bicycleManager, status);
-        executeCommand(cmd);
-    }
-
-    private void changeBicycleStatus() {
-        System.out.print("상태를 변경할 자전거 ID를 입력하세요: ");
-        String id = scanner.nextLine();
-        System.out.println("\n새로운 상태를 선택하세요:");
-        System.out.println("1. 대여가능");
-        System.out.println("2. 대여중");
-        System.out.println("3. 정비중");
-        System.out.println("4. 고장");
-
-        int choice = getMenuChoice(1, 4);
-        BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
-
-        Command cmd = new ChangeStatusCommand(bicycleManager, id, newStatus);
         executeCommand(cmd);
     }
 
