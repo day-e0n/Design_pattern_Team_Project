@@ -32,6 +32,9 @@ public class ConsoleInterface {
         this.pricingContext = new PricingContext(strategyFactory.getStrategy("regular", "일반자전거"));
         this.userManager = new UserManager();
         this.scheduler = Executors.newScheduledThreadPool(4);
+        
+        // ★ [수정됨] RepairServiceObserver 생성자 인자 수정 (3개로 변경, rentalObserver 제거)
+        // RentalServiceObserver는 현재 로직에서 사용되지 않으므로 제거하거나 필요시 기본 생성자로 생성
         this.repairObserver = new RepairServiceObserver(bicycleManager, scheduler, new RepairStrategy());
     }
     
@@ -42,29 +45,88 @@ public class ConsoleInterface {
         
         while (true) {
             isAdminMode = false;
-            showMainMenu();
-            int choice = getMenuChoice(0, 2);
             
-            switch (choice) {
-                case 1:
+            if (currentUser == null) {
+                showLoginMenu();
+                int choice = getMenuChoice(0, 2);
+                switch (choice) {
+                    case 1: loginUser(); break;
+                    case 2: registerUser(); break;
+                    case 0: 
+                        System.out.println("시스템을 종료합니다. 안녕히 가세요!");
+                        scheduler.shutdownNow();
+                        return;
+                }
+            } else {
+                if ("admin".equals(currentUser.getUserType())) {
                     adminMode();
-                    break;
-                case 2:
+                } else {
                     userMode();
-                    break;
-                case 0:
-                    System.out.println("시스템을 종료합니다. 안녕히 가세요!");
-                    scheduler.shutdownNow();
-                    return;
+                }
             }
         }
+    }
+
+    private void showLoginMenu() {
+        System.out.println("\n==== 접속 메뉴 ====");
+        System.out.println("1. 로그인");
+        System.out.println("2. 회원가입");
+        System.out.println("0. 종료");
+        System.out.print("선택하세요: ");
+    }
+
+    private void loginUser() {
+        System.out.print("ID: ");
+        String id = scanner.nextLine().trim();
+        System.out.print("PW: ");
+        String pw = scanner.nextLine().trim();
+        
+        User user = userManager.login(id, pw);
+        if (user != null) {
+            currentUser = user;
+            System.out.println("\n[환영합니다, " + user.getName() + "님!]");
+            System.out.println("현재 잔액: " + user.getBalance() + "원");
+        } else {
+            System.out.println("!!! 로그인 실패: ID 또는 비밀번호를 확인하세요.");
+        }
+    }
+
+    private void registerUser() {
+        System.out.println("\n==== 회원가입 ====");
+        System.out.print("사용자 ID: ");
+        String userId = scanner.nextLine().trim();
+        
+        if (userManager.isUserIdExists(userId)) {
+            System.out.println("이미 존재하는 ID입니다.");
+            return;
+        }
+
+        System.out.print("비밀번호: ");
+        String password = scanner.nextLine();
+        String passwordHash = PasswordUtil.hashPassword(password);
+
+        System.out.print("이름: ");
+        String name = scanner.nextLine().trim();
+        System.out.print("전화번호: ");
+        String phoneNumber = scanner.nextLine().trim();
+        System.out.print("거주 지역: ");
+        String location = scanner.nextLine().trim();
+        
+        System.out.print("회원 유형 (1: 일반, 2: 학생): ");
+        int userTypeChoice = getMenuChoice(1, 2);
+        String userType = (userTypeChoice == 2) ? "student" : "regular";
+        
+        // 초기 잔액 10000원 지급
+        User user = new User(userId, passwordHash, name, phoneNumber, location, userType, 10000);
+        userManager.saveUser(user);
+        System.out.println("회원가입 완료! (초기 잔액 10,000원 지급됨)");
     }
     
     private void showMainMenu() {
         System.out.println("\n==== 메인 메뉴 ====");
         System.out.println("1. 관리자 모드");
         System.out.println("2. 사용자 모드");
-        System.out.println("0. 종료");
+        System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
     
@@ -72,50 +134,23 @@ public class ConsoleInterface {
         isAdminMode = true;
         System.out.println("\n 관리자 모드에 들어갑니다.");
 
-        // 관리자 인증 필요 (환경변수로 생성된 관리자 또는 수동 생성된 관리자 계정 사용)
-        System.out.print("관리자 ID: ");
-        String adminId = scanner.nextLine().trim();
-        System.out.print("비밀번호: ");
-        String adminPass = scanner.nextLine();
-        User admin = userManager.login(adminId, adminPass);
-        if (admin == null || !"admin".equals(admin.getUserType())) {
-            System.out.println("관리자 인증 실패. 관리자만 접근 가능합니다.");
-            return;
-        }
-        System.out.println("관리자 인증 성공. 환영합니다, " + admin.getName() + "님.");
-
         while (true) {
             showAdminMenu();
             int choice = getMenuChoice(0, 8);
 
             switch (choice) {
-                case 1:
-                    addBicycle();
-                    break;
-                case 2:
-                    removeBicycle();
-                    break;
-                case 3:
-                    bicycleManager.listAllBicycles();
-                    break;
-                case 4:
-                    viewBicyclesByStatus();
-                    break;
-                case 5:
-                    reportBrokenBicycle();
-                    break;
-                case 6:
-                    changeBicycleLocation();
-                    break;
-                case 7:
-                    viewBicycleDetails();
-                    break;
-                case 8:
-                    bicycleManager.showStatistics();
-                    break;
+                case 1: addBicycle(); break;
+                case 2: removeBicycle(); break;
+                case 3: bicycleManager.listAllBicycles(); break;
+                case 4: viewBicyclesByStatus(); break;
+                case 5: reportBrokenBicycle(); break;
+                case 6: changeBicycleLocation(); break;
+                case 7: viewBicycleDetails(); break;
+                case 8: bicycleManager.showStatistics(); break;
                 case 0:
                     System.out.println("관리자 모드를 종료합니다.");
                     isAdminMode = false;
+                    currentUser = null;
                     return;
             }
         }
@@ -131,72 +166,26 @@ public class ConsoleInterface {
         System.out.println("6. 자전거 위치 변경");
         System.out.println("7. 자전거 상세 정보");
         System.out.println("8. 통계 보기");
-        System.out.println("0. 메인 메뉴로");
+        System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
     
     private void userMode() {
         System.out.println("\n 사용자 모드에 들어갑니다.");
-        
-        // 로그인 확인
-        if (currentUser == null) {
-            System.out.println("\n사용자 모드를 사용하려면 로그인이 필요합니다.");
-            System.out.println("1. 로그인");
-            System.out.println("2. 회원가입");
-            System.out.println("0. 메인 메뉴로");
-            System.out.print("선택하세요: ");
-            
-            int choice = getMenuChoice(0, 2);
-            
-            if (choice == 1) {
-                loginUser();
-                if (currentUser == null) {
-                    return; // 로그인 실패 시 메인 메뉴로
-                }
-            } else if (choice == 2) {
-                registerUser();
-                System.out.println("회원가입 후 로그인해주세요.");
-                loginUser();
-                if (currentUser == null) {
-                    return;
-                }
-            } else {
-                return;
-            }
-        }
-        
-        System.out.println("\n환영합니다, " + currentUser.getName() + "님!");
-        System.out.println("회원 유형: " + (currentUser.getUserType().equals("student") ? "학생" : "일반"));
+        System.out.println("현재 잔액: " + currentUser.getBalance() + "원");
         
         while (true) {
             showUserMenu();
-            int choice = getMenuChoice(0, 5);
+            int choice = getMenuChoice(0, 4);
             
             switch (choice) {
-                case 1:
-                    viewAvailableBicycles();
-                    break;
-                case 2:
-                    rentBicycle();
-                    break;
-                case 3:
-                    returnBicycle();
-                    break;
-                case 4:
-                    calculatePrice();
-                    break;
-                case 5:
-                    if (currentUser.isRenting()) {
-                        System.out.println("현재 대여 중인 자전거("
-                            + currentUser.getRentedBicycleId() + ")가 있습니다. 반납 후 로그아웃 해주세요.");
-                    } else {
-                        currentUser = null; // 로그아웃
-                        System.out.println("로그아웃되었습니다.");
-                        return;
-                    }
-                    break;
+                case 1: viewAvailableBicycles(); break;
+                case 2: rentBicycle(); break;
+                case 3: returnBicycle(); break;
+                case 4: chargeBalance(); break;
                 case 0:
-                    System.out.println("사용자 모드를 종료합니다.");
+                    currentUser = null;
+                    System.out.println("로그아웃 되었습니다.");
                     return;
             }
         }
@@ -207,26 +196,35 @@ public class ConsoleInterface {
         System.out.println("1. 대여 가능한 자전거 보기");
         System.out.println("2. 자전거 대여");
         System.out.println("3. 자전거 반납");
-        System.out.println("4. 요금 계산");
-        System.out.println("5. 로그아웃");
-        System.out.println("0. 메인 메뉴로");
+        System.out.println("4. 잔액 충전");
+        System.out.println("0. 로그아웃");
         System.out.print("선택하세요: ");
     }
     
-    // 관리자 기능들
+    private void chargeBalance() {
+        System.out.println("\n==== 잔액 충전 ====");
+        System.out.print("충전할 금액을 입력하세요: ");
+        int amount = getIntInput();
+        
+        if (amount <= 0) {
+            System.out.println("0원보다 큰 금액을 입력해주세요.");
+            return;
+        }
+        
+        userManager.rechargeBalance(currentUser.getUserId(), amount);
+    }
+
+    // --- 기존 관리자/사용자 메서드들 ---
     private void addBicycle() {
         System.out.print("자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
-        
         System.out.print("자전거 유형을 선택하세요 (regular/electric): ");
         String type = scanner.nextLine().toLowerCase();
         
         LocationManager locationManager = LocationManager.getInstance();
-        
         System.out.println("\n초기 위치(스테이션)를 선택하세요:");
         locationManager.showStationList();
         System.out.print("번호를 입력하세요: ");
-        
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
         
@@ -234,97 +232,80 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        
         bicycleManager.addBicycle(id, type, stationName);
     }
     
     private void removeBicycle() {
         System.out.print("삭제할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
-
-        Bicycle bike = bicycleManager.getBicycle(id);
-        // 삭제 가능한 상태인지 조회
-        if (bike != null) {
-            if (!bike.getBikeState().canDelete()) return;
+        core.Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike != null && bike.getBikeState().canDelete()) {
+            bicycleManager.removeBicycle(id);
         }
-
-        bicycleManager.removeBicycle(id);
     }
 
     private void reportBrokenBicycle() {
-        System.out.print("신고할 자전거 ID를 입력하세요: ");
+        System.out.print("신고할 ID: ");
         String id = scanner.nextLine();
-        Bicycle bike = bicycleManager.getBicycle(id);
+        core.Bicycle bike = bicycleManager.getBicycle(id);
         if (bike == null) {
             System.out.println("오류: 존재하지 않는 자전거 ID입니다.");
             return;
         }
-        // 신고 가능한 상태인지 조회 
         if (!bike.getBikeState().canReport()) return;
+        
         List<BreakdownReason> reasons = new ArrayList<>();
         boolean isElectric = "electric".equals(bike.getType());
-
         BreakdownReason[] values = BreakdownReason.values();
+        
         while (true) {
-            System.out.println("\n고장 사유를 선택하세요 (완료 시 0):");
-            for (int i = 0; i < values.length; i++) {
-                System.out.printf("%d. %s\n", i + 1, values[i]);
-            }
-            System.out.print("선택하세요: ");
-            int choice = getMenuChoice(0, values.length);
-            if (choice == 0) break;
-
-            BreakdownReason reason = values[choice - 1];
+            System.out.println("\n고장 사유 (완료: 0):");
+            for (int i = 0; i < values.length; i++) System.out.printf("%d. %s\n", i + 1, values[i]);
+            int c = getMenuChoice(0, values.length);
+            if (c == 0) break;
+            BreakdownReason reason = values[c - 1];
             if (!isElectric && reason == BreakdownReason.BATTERY) {
-                System.out.println("오류: 일반 자전거는 배터리 문제를 선택할 수 없습니다. 다시 선택해주세요.");
+                System.out.println("일반 자전거는 배터리 선택 불가.");
                 continue;
             }
             reasons.add(reason);
         }
 
-        if (reasons.isEmpty()) {
-            System.out.println("신고가 취소되었습니다.");
-            return;
+        if (!reasons.isEmpty()) {
+            bike.getBikeState().reportBroken(reasons);
+            BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
+            subject.addObserver(repairObserver);
+            subject.report();
+            System.out.println("수리 신고 접수 완료.");
         }
-
-        // 상태에 신고를 전달
-        bike.getBikeState().reportBroken(reasons);
-
-        // Subject 생성 및 옵저버 등록
-        BreakdownReportSubject subject = new BreakdownReportSubject(id, reasons, bike.getLocation(), isElectric);
-        subject.addObserver(repairObserver);
-        subject.report();
-        System.out.println("수리 신고가 접수되었습니다.");
     }
     
     private void viewBicyclesByStatus() {
-        System.out.println("\n상태를 선택하세요:");
-        System.out.println("1. 대여 가능");
-        System.out.println("2. 대여 중");
-        System.out.println("3. 수리 중");
-        System.out.println("4. 고장");
-        
+        System.out.println("1.대여가능 2.대여중 3.수리중 4.고장");
+        int c = getMenuChoice(1, 4);
+        bicycleManager.listBicyclesByStatus(BicycleStatus.values()[c-1]);
+    }
+    
+    private void changeBicycleStatus() {
+        System.out.print("상태를 변경할 자전거 ID를 입력하세요: ");
+        String id = scanner.nextLine();
+        System.out.println("\n새로운 상태를 선택하세요:");
+        System.out.println("1. 대여가능 2.대여중 3.정비중 4.고장");
         int choice = getMenuChoice(1, 4);
-        BicycleStatus status = BicycleStatus.values()[choice - 1];
-        bicycleManager.listBicyclesByStatus(status);
+        BicycleStatus newStatus = BicycleStatus.values()[choice - 1];
+        bicycleManager.changeBicycleStatus(id, newStatus);
     }
     
     private void changeBicycleLocation() {
         System.out.print("위치를 변경할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
-
-        // 위치 이동 가능한 상태인지 조회
-        Bicycle bike = bicycleManager.getBicycle(id);
-        if (bike != null) {
-            if (!bike.getBikeState().canMove()) return;
-        }
+        core.Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike != null && !bike.getBikeState().canMove()) return;
         
         LocationManager locationManager = LocationManager.getInstance();
-        
         System.out.println("\n새로운 위치(스테이션)를 선택하세요:");
         locationManager.showStationList();
         System.out.print("번호를 입력하세요: ");
-        
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
         
@@ -332,7 +313,6 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        
         bicycleManager.changeBicycleLocation(id, stationName);
     }
     
@@ -342,67 +322,11 @@ public class ConsoleInterface {
         bicycleManager.showBicycleDetails(id);
     }
     
-    // 사용자 기능들
-    private void loginUser() {
-        System.out.println("\n==== 로그인 ====");
-        
-        System.out.print("사용자 ID: ");
-        String userId = scanner.nextLine().trim();
-        
-        System.out.print("비밀번호: ");
-        String password = scanner.nextLine();
-        
-        currentUser = userManager.login(userId, password);
-        
-        if (currentUser != null) {
-            System.out.println("로그인 성공! 환영합니다, " + currentUser.getName() + "님!");
-            
-            // 사용자 유형에 따라 요금 전략 설정
-            String bicycleType = "일반자전거"; // 기본값
-            pricingContext.setStrategy(strategyFactory.getStrategy(currentUser.getUserType(), bicycleType));
-        } else {
-            System.out.println("로그인 실패!");
-        }
-    }
-    
-    private void registerUser() {
-        System.out.println("\n==== 회원가입 ====");
-        
-        System.out.print("사용자 ID를 입력하세요: ");
-        String userId = scanner.nextLine().trim();
-        
-        // ID 중복 확인
-        if (userManager.isUserIdExists(userId)) {
-            System.out.println("이미 존재하는 ID입니다. 다른 ID를 사용해주세요.");
-            return;
-        }
-
-        System.out.print("비밀번호를 입력하세요: ");
-        String password = scanner.nextLine();
-        String passwordHash = PasswordUtil.hashPassword(password);  // 해시 처리
-
-        System.out.print("이름을 입력하세요: ");
-        String name = scanner.nextLine().trim();
-        
-        System.out.print("회원 유형을 선택하세요 (1: 일반, 2: 학생): ");
-        int userTypeChoice = getMenuChoice(1, 2);
-        String userType = (userTypeChoice == 2) ? "student" : "regular";
-
-        User user = new User(userId, passwordHash, name, "", "", userType);
-        userManager.saveUser(user);
-
-        System.out.println("회원가입이 완료되었습니다!");
-        System.out.println("회원 유형: " + (userType.equals("student") ? "학생" : "일반"));
-    }
-
-
     private void viewAvailableBicycles() {
         LocationManager locationManager = LocationManager.getInstance();
-        
         System.out.println("\n현재 위치를 선택하세요:");
         locationManager.showStationList();
         System.out.print("번호를 입력하세요: ");
-        
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
         
@@ -410,17 +334,19 @@ public class ConsoleInterface {
             System.out.println("잘못된 스테이션 번호입니다.");
             return;
         }
-        
         locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
     }
     
     private void rentBicycle() {
+        if (currentUser.isRenting()) {
+            System.out.println("이미 대여 중인 자전거가 있습니다: " + currentUser.getRentedBicycleId());
+            return;
+        }
+
         LocationManager locationManager = LocationManager.getInstance();
-        
         System.out.println("\n현재 위치(자전거를 빌릴 스테이션)를 선택하세요:");
         locationManager.showStationList();
         System.out.print("번호를 입력하세요: ");
-        
         int stationNum = getMenuChoice(1, 4);
         String stationName = locationManager.getStationNameByNumber(stationNum);
         
@@ -429,7 +355,6 @@ public class ConsoleInterface {
             return;
         }
         
-        // 해당 스테이션의 대여 가능한 자전거 보기
         locationManager.showAvailableBicyclesAtStation(stationName, bicycleManager);
         
         List<String> bikesAtStation = locationManager.getBicyclesAtStation(stationName);
@@ -441,127 +366,90 @@ public class ConsoleInterface {
         System.out.print("\n대여할 자전거 ID를 입력하세요: ");
         String id = scanner.nextLine();
         
-        // 해당 스테이션에 자전거가 있는지 확인
         if (!bikesAtStation.contains(id)) {
             System.out.println("이 스테이션에 해당 자전거가 없습니다.");
             return;
         }
 
-        // 대여 가능 여부 확인
-        Bicycle bike = bicycleManager.getBicycle(id);
-        if (bike != null) {
-            if (!bike.getBikeState().canRent()) {
-                return;
-            }
+        core.Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike != null && !bike.getBikeState().canRent()) {
+            return;
         }
         
-        if (bicycleManager.rentBicycle(id)) { // 자전거 대여 처리
-            currentUser.startRental(id); 
-        }   // 사용자 대여 상태 업데이트
+        if (bicycleManager.rentBicycle(id)) {
+            currentUser.startRental(id);
+        }
     }
     
     private void returnBicycle() {
-        System.out.print("반납할 자전거 ID를 입력하세요: ");
-        String id = scanner.nextLine();
-        
-        LocationManager locationManager = LocationManager.getInstance();
-        
-        System.out.println("\n반납할 스테이션을 선택하세요:");
-        locationManager.showStationList();
-        System.out.print("번호를 입력하세요: ");
-        
-        int stationNum = getMenuChoice(1, 4);
-        String stationName = locationManager.getStationNameByNumber(stationNum);
-        
-        if (stationName == null) {
-            System.out.println("잘못된 스테이션 번호입니다.");
-            return;
+        String id = currentUser.getRentedBicycleId();
+        if (id == null) {
+            System.out.println("대여 중인 자전거가 없습니다.");
+            System.out.print("반납할 자전거 ID를 직접 입력하시겠습니까? (y/n): ");
+            String ans = scanner.nextLine().trim();
+            if (ans.equalsIgnoreCase("y")) {
+                System.out.print("자전거 ID: ");
+                id = scanner.nextLine();
+            } else {
+                return;
+            }
+        } else {
+            System.out.println(">> 반납 자전거: " + id);
         }
         
-        Bicycle bicycle = bicycleManager.getBicycle(id);
-        if (bicycle == null) {
+        LocationManager loc = LocationManager.getInstance();
+        System.out.println("반납 스테이션 선택:");
+        loc.showStationList();
+        System.out.print("번호: ");
+        int num = getMenuChoice(1, 4);
+        String station = loc.getStationNameByNumber(num);
+        
+        if (station == null) return;
+
+        core.Bicycle bike = bicycleManager.getBicycle(id);
+        if (bike == null) {
             System.out.println("오류: 자전거를 찾을 수 없습니다.");
             return;
         }
+        String type = bike.getType();
         
-        String bicycleType = bicycle.getType();
+        int minutes = bicycleManager.returnBicycle(id, station);
         
-        int minutes = bicycleManager.returnBicycle(id, stationName);
-        
-        // 반납이 성공적으로 이뤄졌을 때만 (minutes >= 0) 요금 계산을 진행
         if (minutes >= 0) {
+            currentUser.endRental();
+            System.out.println("\n--- 반납 완료 (" + minutes + "분 이용) ---");
             
-            currentUser.endRental(); // 사용자 대여 상태 업데이트(반납 완료)
-            System.out.println("\n--- 반납 완료! (" + minutes + "초 이용) ---");
-            System.out.println("--- 요금 계산을 시작합니다. (테스트: 1초 = 1분) ---");
-        
-            // 로그인한 사용자 정보 사용
-            String userType = currentUser.getUserType();
-            
-            // 팩토리를 통해 전략 선택
-            PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
-            
-            // Context를 통해 요금 계산 실행
+            PricingStrategy strategy = strategyFactory.getStrategy(currentUser.getUserType(), type);
             pricingContext.setStrategy(strategy);
             int fee = pricingContext.calculatePrice(minutes);
             
             System.out.println("---------------------------------");
-            System.out.println("        최종 결제 요금");
+            System.out.println("        결제 명세서");
             System.out.println("---------------------------------");
-            System.out.println("사용자: " + currentUser.getName() + " (" + currentUser.getUserId() + ")");
-            System.out.println("사용자 유형: " + (userType.equals("student") ? "학생" : "일반"));
-            System.out.println("자전거 종류: " + bicycleType);
-            System.out.println("이용 시간: " + minutes + "분 (테스트: " + minutes + "초)");
+            System.out.println("사용자: " + currentUser.getName());
+            System.out.println("자전거: " + type + " (" + id + ")");
+            System.out.println("요금제: " + pricingContext.getStrategyName());
+            System.out.println("청구 금액: " + fee + "원");
             
-            //PricingStrategy.java에 추가된 getStrategyName() 사용
-            System.out.println("적용 요금제: " + pricingContext.getStrategyName());
-            
-            System.out.println("최종 요금: " + fee + "원");
+            boolean success = userManager.deductBalance(currentUser.getUserId(), fee);
+            if (success) {
+                System.out.println("[결제 성공] 잔액 차감 완료");
+                System.out.println("남은 잔액: " + currentUser.getBalance() + "원");
+            } else {
+                System.out.println("[결제 실패] 잔액 부족!");
+                System.out.println("현재 잔액: " + currentUser.getBalance() + "원");
+            }
             System.out.println("---------------------------------");
-            
-            // (여기에 잔액 관리 기능도 넣으면 될 것 같아요.)
         }
     }
     
-    private void calculatePrice() {
-        System.out.println("\n==== 요금 계산기 ====");
-        System.out.println("자전거 유형을 선택하세요:");
-        System.out.println("1. 일반자전거");
-        System.out.println("2. 전기자전거");
-        
-        int bikeChoice = getMenuChoice(1, 2);
-        String bicycleType = (bikeChoice == 1) ? "일반자전거" : "전기자전거";
-        
-        System.out.print("이용 시간(분)을 입력하세요: ");
-        int minutes = getIntInput();
-        
-        // 로그인한 사용자 정보 사용
-        String userType = currentUser.getUserType();
-        
-        // 팩토리를 통해 전략 선택
-        PricingStrategy strategy = strategyFactory.getStrategy(userType, bicycleType);
-        pricingContext.setStrategy(strategy);
-        
-        int fee = pricingContext.calculatePrice(minutes);
-        
-        System.out.println("\n---------------------------------");
-        System.out.println("        요금 계산 결과");
-        System.out.println("---------------------------------");
-        System.out.println("사용자: " + currentUser.getName());
-        System.out.println("회원 유형: " + (userType.equals("student") ? "학생" : "일반"));
-        System.out.println("자전거 종류: " + bicycleType);
-        System.out.println("이용 시간: " + minutes + "분");
-        System.out.println("적용 요금제: " + pricingContext.getStrategyName());
-        System.out.println("예상 요금: " + fee + "원");
-        System.out.println("---------------------------------");
-    }
-    
-    
-    // 유틸리티 메소드들
     private int getMenuChoice(int min, int max) {
         while (true) {
             try {
-                int choice = Integer.parseInt(scanner.nextLine().trim());
+                String input = scanner.nextLine().trim();
+                if (input.isEmpty()) continue;
+                
+                int choice = Integer.parseInt(input);
                 if (choice >= min && choice <= max) {
                     return choice;
                 } else {
