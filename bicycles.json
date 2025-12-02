@@ -28,7 +28,7 @@
       "id": "E002",
       "type": "electric",
       "station": "죽전동",
-      "status": "AVAILABLE"
+      "status": "BROKEN"
     }
   ]
 }

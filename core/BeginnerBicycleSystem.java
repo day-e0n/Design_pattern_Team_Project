@@ -1,9 +1,6 @@
 package core;
 
-import core.*;
 import strategy.*;
-import observer.*;
-import state.*;
 
 /**
  * 자전거 공유 시스템 메인 클래스
