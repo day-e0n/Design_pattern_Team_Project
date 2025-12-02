@@ -19,7 +19,7 @@ javac *.java
 ## 포함된 디자인 패턴 (주요)
 - Factory: `core/BicycleFactory.java` — 일반/전기 자전거 생성
 - Strategy: `strategy/*` — 요금(정책) 및 수리 시간 계산
-- Decorator: `decorator/*` — GPS, 스마트잠금 등 자전거 기능 확장
+- Command: `command/*` — 자전거 관리 기능을 객체로 분리
 - Observer: `observer/*` + `core/LocationManager.java` — 고장 신고/수리 알림과 위치 알림
 - State: `state/*` — 자전거의 상태(대여/수리/고장 등)를 캡슐화
 
@@ -28,7 +28,7 @@ javac *.java
 beginner_only/
 - bin/ (예비 스크립트/도움용 폴더)
 - core/ (도메인 모델, 콘솔 UI, 매니저들)
-- decorator/ (데코레이터 패턴 구현)
+- command/ (커맨드 패턴 구현)
 - observer/ (옵저버 패턴 구현)
 - state/ (State 패턴 구현)
 - strategy/ (요금·수리 전략)
