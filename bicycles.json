@@ -3,7 +3,7 @@
     {
       "id": "R002",
       "type": "regular",
-      "station": "성복동",
+      "station": "상현동",
       "status": "AVAILABLE"
     },
     {
@@ -22,13 +22,13 @@
       "id": "E001",
       "type": "electric",
       "station": "죽전동",
-      "status": "BROKEN"
+      "status": "AVAILABLE"
     },
     {
       "id": "E002",
       "type": "electric",
       "station": "죽전동",
-      "status": "BROKEN"
+      "status": "AVAILABLE"
     }
   ]
 }

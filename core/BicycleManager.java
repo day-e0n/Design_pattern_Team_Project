@@ -298,8 +298,6 @@ public class BicycleManager {
         // 상태 변경도 JSON에 업데이트
         saveBicyclesToJson();
 
-        System.out.printf("자전거 %s의 상태가 '%s'에서 '%s'로 변경되었습니다.\n",
-                id, oldStatus.getDescription(), newStatus.getDescription());
         return true;
     }
 

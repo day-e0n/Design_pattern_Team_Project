@@ -74,8 +74,8 @@ public class RepairServiceObserver implements ObserverInterface {
 
     // 4단계: 완료
     private void completeRepair(Bicycle bike) {
-        bike.getBikeState().setState(new AvailableState());
         bicycleManager.changeBicycleStatus(bike.getId(), BicycleStatus.AVAILABLE);
+        bike.getBikeState().setState(new AvailableState());
         printAdminMessage(">> [완료] 자전거 " + bike.getId() + " 수리가 완료되었습니다.");
     }
 
